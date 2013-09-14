@@ -32,11 +32,11 @@ THE SOFTWARE.
 
 namespace tcpie { namespace wincore {
 
-DetourRet Detour::CallDetour(DetourArgs* Arguments)
+DetourRet Detour::CallDetour(DetourArgs* Arguments) const
 {
 	if (this->detour_class != NULL)
 	{
-		return this->detour_class->DetourCallback(Arguments);
+		return const_cast<IDetourClass*>(this->detour_class)->DetourCallback(Arguments);
 	}
 
 	if (this->detour_function != NULL)
@@ -194,7 +194,7 @@ DWORD Hook::global_detour(Hook* hook, ...)
 	return hook->detour(instance, &args);
 }
 
-Hook::Hook(Function* TargetFunction, std::wstring* Name, Function* UnhookedFunction, DWORD DefaultReturnValue, MemoryRegion* OldCode, MemoryRegion* PatchCode)
+Hook::Hook(const Function* TargetFunction, std::wstring* Name, Function* UnhookedFunction, DWORD DefaultReturnValue, MemoryRegion* OldCode, MemoryRegion* PatchCode)
 {
 	this->name = Name;
 	this->function = TargetFunction;
@@ -209,8 +209,13 @@ Hook::Hook(Function* TargetFunction, std::wstring* Name, Function* UnhookedFunct
 
 Hook::~Hook()
 {
+	this->function->GetProcess()->FreeMemory(this->old_code);
+	this->function->GetProcess()->FreeMemory(this->patch_code);
+
 	delete this->pre_detours;
 	delete this->post_detours;
+	delete this->name;
+	delete this->unhooked_function;
 }
 
 void Hook::SetEnabled(bool enabled)
@@ -225,12 +230,12 @@ void Hook::SetEnabled(bool enabled)
 	}
 }
 
-Function* Hook::GetFunction()
+const Function* Hook::GetFunction() const
 {
 	return this->function;
 }
 
-Function* Hook::GetUnhookedFunction()
+const Function* Hook::GetUnhookedFunction() const
 {
 	return this->unhooked_function;
 }
@@ -249,12 +254,12 @@ void Hook::Disable()
 	Process::GetCurrentProcess()->WriteMemory(this->old_code, this->function->GetAddress());
 }
 
-bool Hook::IsEnabled()
+bool Hook::IsEnabled() const
 {
 	return this->enabled;
 }
 
-const std::wstring* Hook::GetName()
+const std::wstring* Hook::GetName() const
 {
 	return this->name;
 }
@@ -282,7 +287,7 @@ Detour* Hook::RegisterDetour(DetourCallback Callback, DetourType Type)
 	}
 }
 
-Detour* Hook::RegisterDetour(IDetourClass* Callback, DetourType Type)
+Detour* Hook::RegisterDetour(const IDetourClass* Callback, DetourType Type)
 {
 	Detour* ret = NULL;
 
@@ -305,14 +310,14 @@ Detour* Hook::RegisterDetour(IDetourClass* Callback, DetourType Type)
 	}
 }
 
-Hook* Hook::GetHookByName(std::wstring* Name)
+Hook* Hook::GetHookByName(const std::wstring* Name)
 {
 	return Hook::hooks->at(*Name);
 }
 
-Hook* Hook::CreateHook(Function* TargetFunction, std::wstring* Name, DWORD DefaultReturnValue, bool DoSafetyChecks)
+Hook* Hook::CreateHook(const Function* TargetFunction, std::wstring* Name, DWORD DefaultReturnValue, bool DoSafetyChecks)
 {
-	PatchInfo* patchinfo = TargetFunction->FindPatchInfo();
+	PatchInfo* patchinfo = const_cast<Function*>(TargetFunction)->FindPatchInfo();
 
 	if (DoSafetyChecks)
 	{

@@ -35,12 +35,12 @@ protected:
 	std::wstring* file_name;
 
 public:
-	File(std::wstring* Path);
+	File(const std::wstring* Path);
 	~File();
 
-	std::wstring* GetFullPath() { return this->full_path; }
-	std::wstring* GetDirectory() { return this->directory; }
-	std::wstring* GetNameWithExtension() { return this->file_name; }
+	const std::wstring* GetFullPath() const { return this->full_path; }
+	const std::wstring* GetDirectory() const { return this->directory; }
+	const std::wstring* GetNameWithExtension() const { return this->file_name; }
 };
 
 } }

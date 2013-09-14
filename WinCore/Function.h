@@ -55,6 +55,13 @@ private:
 	int jump_instruction_length;
 
 public:
+	PatchInfo(PatchInfo& other)
+	{
+		this->num_opcodes = other.GetNumOpcodes();
+		this->jump_instruction_address = other.GetJumpInstructionAddress();
+		this->jump_instruction_length = other.GetJumpInstructionLength();
+	}
+
 	PatchInfo(int NumOpcodes, void* JumpInstructionAddress, int JumpInstructionLength)
 	{
 		this->num_opcodes = NumOpcodes;
@@ -62,47 +69,47 @@ public:
 		this->jump_instruction_length = JumpInstructionLength; 
 	}
 
-	int GetNumOpcodes() { return this->num_opcodes; }
-	void* GetJumpInstructionAddress() { return this->jump_instruction_address; }
-	int GetJumpInstructionLength() { return this->jump_instruction_length; }
+	int GetNumOpcodes() const { return this->num_opcodes; }
+	void* GetJumpInstructionAddress() const { return this->jump_instruction_address; }
+	int GetJumpInstructionLength() const { return this->jump_instruction_length; }
 };
 
 class __declspec(dllexport) Function
 {
 private:
-	Process* process;
+	const Process* process;
 	void* address;
 	int argcount;
 	ReturnType return_type;
 	CallingConvention calling_convention;
 	PatchInfo* patchinfo;
 
-	bool callInDifferentProcess(Process* TargetProcess, Thread* CallingThread, std::vector<void*>* Args, void* instance, bool cleanup, void* asm_fn, DWORD* ret_val);
-	bool callInDifferentThread(Thread* CallingThread, std::vector<void*>* Args, void* instance, bool cleanup, DWORD* ret_val);
+	bool callInDifferentProcess(const Process* TargetProcess, const Thread* CallingThread, const std::vector<void*>* Args, void* instance, bool cleanup, void* asm_fn, DWORD* ret_val) const;
+	bool callInDifferentThread(const Thread* CallingThread, const std::vector<void*>* Args, void* instance, bool cleanup, DWORD* ret_val) const;
 
 protected:
-	MemoryRegion* CreateFunctionStackCleaner(size_t NumArgsToClean);
+	MemoryRegion* CreateFunctionStackCleaner(size_t NumArgsToClean) const;
 
 public:
 	static Function* FindFunction(const std::vector<BYTE>* Signature, const std::vector<char>* SignatureMask, CallingConvention CallConv, int ArgCount, ReturnType RetType);
-	static Function* FindFunction(const std::vector<BYTE>* Signature, const std::vector<char>* SignatureMask, Process* process, CallingConvention CallConv, int ArgCount, ReturnType RetType);
+	static Function* FindFunction(const std::vector<BYTE>* Signature, const std::vector<char>* SignatureMask, const Process* process, CallingConvention CallConv, int ArgCount, ReturnType RetType);
 
 	Function(Function& other);
 	Function(void* Address, CallingConvention CallConv, int ArgCount, ReturnType RetType);
-	Function(Process* process, void* Address, CallingConvention CallConv, int ArgCount, ReturnType RetType);
+	Function(const Process* process, void* Address, CallingConvention CallConv, int ArgCount, ReturnType RetType);
 
 	~Function();
 
-	Process* GetProcess() { return this->process; }
-	ReturnType GetReturnType() { return this->return_type; }
-	void* GetAddress() { return this->address; }
-	int GetArgCount() { return this->argcount; }
-	CallingConvention GetCallingConvention() { return this->calling_convention; }
+	const Process* GetProcess() const { return this->process; }
+	ReturnType GetReturnType() const { return this->return_type; }
+	void* GetAddress() const { return this->address; }
+	int GetArgCount() const { return this->argcount; }
+	CallingConvention GetCallingConvention() const { return this->calling_convention; }
 
 	PatchInfo* FindPatchInfo();
 
-	Function* SetFirstReturnAddress(void* Address);
-	Function* CreateStdcallWrapper(int NumArgsToClean = -1);
+	Function* CreateWrapperWithForcedReturnAddress(void* Address) const;
+	Function* CreateStdcallWrapper(int NumArgsToClean = -1) const;
 
 	// Calls the function.
 	//		If the function is within the current process,
@@ -113,12 +120,12 @@ public:
 	//
 	//		The return value is true on success and false on
 	//		function call time out.
-	bool Call(std::vector<void*>* Args, DWORD* ReturnValue = NULL, void* Instance = NULL);
+	bool Call(const std::vector<void*>* Args, DWORD* ReturnValue = NULL, void* Instance = NULL) const;
 
 	// Calls the function using the specified thread.
 	//		Note that the call may time out if the
 	//		specified thread is currently sleeping!
-	bool Call(std::vector<void*>* Args, Thread* CallingThread, DWORD* ReturnValue = NULL, void* Instance = NULL);
+	bool Call(const std::vector<void*>* Args, const Thread* CallingThread, DWORD* ReturnValue = NULL, void* Instance = NULL) const;
 };
 
 } }

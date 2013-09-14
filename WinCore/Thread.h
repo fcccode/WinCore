@@ -45,25 +45,26 @@ public:
 	Thread(THREADENTRY32 ThreadInfo);
 	~Thread();
 
-	DWORD GetId() { return this->id; }
+	DWORD GetId() const { return this->id; }
 
 	void* GetStartAddress();
 	
-	void PushToStack(std::vector<void*>* Args);
+	void PushToStack(const std::vector<void*>* Args);
 
-	void Suspend();
-	void Resume();
-	CONTEXT GetContext();
-	bool SetContext(CONTEXT value);
+	void Suspend() const;
+	void Resume() const;
 
-	Process* GetOwningProcess();
+	CONTEXT GetContext() const;
+	bool SetContext(CONTEXT value) const;
+
+	const Process* GetOwningProcess();
 
 	static DWORD GetCurrentThreadId();
 	static Thread* GetCurrentThread();
-	static Thread* FindOldest(std::vector<Thread*>* Threads);
+	static Thread* FindOldest(const std::vector<Thread*>* Threads);
 	static Thread* FindThreadById(DWORD ThreadId);
 	static std::vector<Thread*>* GetSystemThreads();
-	static Thread* Create(Process* HostProcess, void* StartAddress, void* Parameter);
+	static Thread* Create(const Process* HostProcess, void* StartAddress, void* Parameter);
 };
 
 } }

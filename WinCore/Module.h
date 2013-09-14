@@ -43,15 +43,15 @@ private:
 
 public:
 	Module(MODULEENTRY32W ModuleInfo);
+	~Module();
 
-	Process* GetOwningProcess();
+	const Process* GetOwningProcess();
 	
-	std::wstring* GetName() { return this->name; }
-	DWORD GetId() { return this->module_info.th32ModuleID; }
-	MemoryRegion* GetMemoryRegion() { return this->memory_region; }
+	const std::wstring* GetName() const { return this->name; }
+	DWORD GetId() const { return this->module_info.th32ModuleID; }
+	const MemoryRegion* GetMemoryRegion() const { return this->memory_region; }
 
-	void* GetProcAddress(std::wstring ProcName);
-	std::vector<Thread*>* FindThreadsStartedHere();
+	std::vector<Thread*>* FindThreadsStartedHere() const;
 };
 
 } }

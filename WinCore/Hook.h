@@ -59,18 +59,20 @@ class __declspec(dllexport) IDetourClass
 {
 public:
 	virtual ~IDetourClass() { }
+
+	// NOTE: While Arguments is not marked const, you should NOT delete it!
 	virtual DetourRet DetourCallback(DetourArgs* Arguments) = 0;
 };
 
 class __declspec(dllexport) Detour
 {
 private:
-	Hook* hook;
+	const Hook* hook;
 	DetourCallback detour_function;
-	IDetourClass* detour_class;
+	const IDetourClass* detour_class;
 	DetourType detour_type;
 
-	Detour(Hook* FnHook, DetourCallback DetourFunction, DetourType Type)
+	Detour(const Hook* FnHook, DetourCallback DetourFunction, DetourType Type)
 	{
 		this->hook = FnHook;
 		this->detour_function = DetourFunction;
@@ -78,7 +80,7 @@ private:
 		this->detour_type = Type;
 	}
 
-	Detour(Hook* FnHook, IDetourClass* DetourClass, DetourType Type)
+	Detour(const Hook* FnHook, const IDetourClass* DetourClass, DetourType Type)
 	{
 		this->hook = FnHook;
 		this->detour_class = DetourClass;
@@ -87,13 +89,15 @@ private:
 	}
 
 protected:
-	DetourRet CallDetour(DetourArgs* Arguments);
+	DetourRet CallDetour(DetourArgs* Arguments) const;
 
 public:
-	DetourType GetDetourType() { return this->detour_type; }
-	Hook* GetHook() { return this->hook; }
-	IDetourClass* GetDetourClass() { return this->detour_class; }
-	DetourCallback GetDetourCallback() { return this->detour_function; }
+	~Detour() { }
+
+	DetourType GetDetourType() const { return this->detour_type; }
+	const Hook* GetHook() const { return this->hook; }
+	const IDetourClass* GetDetourClass() const { return this->detour_class; }
+	const DetourCallback GetDetourCallback() const { return this->detour_function; }
 
 	friend class Hook;
 };
@@ -104,23 +108,23 @@ class __declspec(dllexport) DetourArgs
 private:
 	void* instance;
 	DetourRet previous_changes;
-	Detour* detour;
+	const Detour* detour;
 
 protected:
-	DetourArgs(Detour* TheDetour, void* Instance, std::vector<void*>* Arguments, DWORD CustomReturnValue, DetourRet PreviousChanges)
+	DetourArgs(const Detour* TheDetour, void* Instance, const std::vector<void*>* Arguments, DWORD CustomReturnValue, DetourRet PreviousChanges)
 	{
 		this->instance = Instance;
-		this->Arguments = Arguments;
+		this->Arguments = new std::vector<void*>(*Arguments);
 		this->previous_changes = PreviousChanges;
 		this->CustomReturnValue = CustomReturnValue;
 		this->detour = TheDetour;
 	}
 
 public:
-	void* GetInstance() { return this->instance; }
-	DetourType GetDetourType() { return this->detour->GetDetourType(); }
-	DetourRet GetPreviousChanges() { return this->previous_changes; }
-	Detour* GetDetour() { return this->detour; }
+	void* GetInstance() const { return this->instance; }
+	DetourType GetDetourType() const { return this->detour->GetDetourType(); }
+	DetourRet GetPreviousChanges() const { return this->previous_changes; }
+	const Detour* GetDetour() const { return this->detour; }
 
 	DWORD CustomReturnValue;
 	
@@ -131,7 +135,7 @@ class __declspec(dllexport) Hook
 {
 private:
 	std::wstring* name;
-	Function* function;
+	const Function* function;
 	Function* unhooked_function;
 
 	MemoryRegion* old_code;
@@ -144,7 +148,7 @@ private:
 
 	static std::map<std::wstring, Hook*>* hooks;
 
-	Hook(Function* TargetFunction, std::wstring* Name, Function* UnhookedFunction, DWORD DefaultReturnValue, MemoryRegion* OldCode, MemoryRegion* PatchCode);
+	Hook(const Function* TargetFunction, std::wstring* Name, Function* UnhookedFunction, DWORD DefaultReturnValue, MemoryRegion* OldCode, MemoryRegion* PatchCode);
 	~Hook();
 
 	DWORD detour(void* instance, std::vector<void*>* args);
@@ -156,17 +160,17 @@ public:
 	void Enable();
 	void Disable();
 
-	bool IsEnabled();
-	const std::wstring* GetName();
+	bool IsEnabled() const;
+	const std::wstring* GetName() const;
 
-	Function* GetFunction();
-	Function* GetUnhookedFunction();
+	const Function* GetFunction() const;
+	const Function* GetUnhookedFunction() const;
 
 	Detour* RegisterDetour(DetourCallback Callback, DetourType Type);
-	Detour* RegisterDetour(IDetourClass* Callback, DetourType Type);
+	Detour* RegisterDetour(const IDetourClass* Callback, DetourType Type);
 
-	static Hook* GetHookByName(std::wstring* Name);
-	static Hook* CreateHook(Function* TargetFunction, std::wstring* Name, DWORD DefaultReturnValue = 0, bool DoSafetyChecks = true);	
+	static Hook* GetHookByName(const std::wstring* Name);
+	static Hook* CreateHook(const Function* TargetFunction, std::wstring* Name, DWORD DefaultReturnValue = 0, bool DoSafetyChecks = true);	
 };
 
 } }
