@@ -22,7 +22,6 @@ THE SOFTWARE.
 
 #include "stdafx.h"
 #include "Function.h"
-#include "MemSearchable.h"
 #include "Thread.h"
 #include "Process.h"
 #include "assembly.h"

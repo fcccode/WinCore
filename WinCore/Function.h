@@ -23,8 +23,6 @@ THE SOFTWARE.
 #ifndef _FUNCTION_H_
 #define _FUNCTION_H_
 
-#include "MemSearchable.h"
-
 #include <vector>
 #include <string>
 

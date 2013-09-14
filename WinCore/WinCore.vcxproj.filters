@@ -24,13 +24,7 @@
     <ClInclude Include="targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="memhelp.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="WinCore.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="processhelp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Process.h">
@@ -49,9 +43,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Function.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MemSearchable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="assembly.h">
@@ -74,12 +65,6 @@
     <ClCompile Include="dllmain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="memhelp.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="processhelp.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Process.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -93,9 +78,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="File.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MemSearchable.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Function.cpp">
