@@ -166,7 +166,7 @@ public:
 	Detour* RegisterDetour(IDetourClass* Callback, DetourType Type);
 
 	static Hook* GetHookByName(std::wstring* Name);
-	static Hook* CreateHook(Function* TargetFunction, std::wstring* Name, DWORD DefaultReturnValue, bool DoSafetyChecks = true);	
+	static Hook* CreateHook(Function* TargetFunction, std::wstring* Name, DWORD DefaultReturnValue = 0, bool DoSafetyChecks = true);	
 };
 
 } }

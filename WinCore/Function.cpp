@@ -34,7 +34,7 @@ THE SOFTWARE.
 
 namespace tcpie { namespace wincore {
 
-Function::Function(Function& other) : MemSearchable(other.signature, other.signature_mask)
+Function::Function(Function& other)
 {
 	this->process = other.GetProcess();
 	this->address = other.GetAddress();
@@ -42,12 +42,9 @@ Function::Function(Function& other) : MemSearchable(other.signature, other.signa
 	this->return_type = other.GetReturnType();
 	this->calling_convention = other.GetCallingConvention();
 	this->patchinfo = other.patchinfo;
-	this->signature = other.signature;
-	this->signature_mask = other.signature_mask;
 }
 
-Function::Function(void* Address, CallingConvention CallConv, int ArgCount, ReturnType RetType, std::vector<unsigned char*>* Signature, std::wstring* SignatureMask)
-	: MemSearchable(Signature, SignatureMask)
+Function::Function(void* Address, CallingConvention CallConv, int ArgCount, ReturnType RetType)
 {
 	this->process = Process::GetCurrentProcess();
 	this->address = Address;
@@ -57,8 +54,7 @@ Function::Function(void* Address, CallingConvention CallConv, int ArgCount, Retu
 	this->patchinfo = NULL;
 }
 
-Function::Function(Process* process, void* Address, CallingConvention CallConv, int ArgCount, ReturnType RetType, std::vector<unsigned char*>* Signature, std::wstring* SignatureMask)
-	: MemSearchable(Signature, SignatureMask)
+Function::Function(Process* process, void* Address, CallingConvention CallConv, int ArgCount, ReturnType RetType)
 {
 	this->process = process;
 	this->address = Address;
@@ -370,7 +366,7 @@ Function* Function::SetFirstReturnAddress(void* Address)
 
 	delete region;
 
-	return new Function(start_addr, this->calling_convention, this->argcount, this->return_type, this->signature, this->signature_mask);
+	return new Function(start_addr, this->calling_convention, this->argcount, this->return_type);
 }
 
 Function* Function::CreateStdcallWrapper(int NumArgsToClean)
@@ -412,7 +408,7 @@ Function* Function::CreateStdcallWrapper(int NumArgsToClean)
 
 		delete pre_fn;
 
-		return new Function(this->process, this->address, STDCALL_CALLCONV, this->argcount, this->return_type, this->signature, this->signature_mask);
+		return new Function(this->process, this->address, STDCALL_CALLCONV, this->argcount, this->return_type);
 	}
 
 	return NULL;

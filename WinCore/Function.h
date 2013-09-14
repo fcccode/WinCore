@@ -69,7 +69,7 @@ public:
 	int GetJumpInstructionLength() { return this->jump_instruction_length; }
 };
 
-class __declspec(dllexport) Function : public MemSearchable
+class __declspec(dllexport) Function
 {
 private:
 	Process* process;
@@ -87,8 +87,8 @@ protected:
 
 public:
 	Function(Function& other);
-	Function(void* Address, CallingConvention CallConv, int ArgCount, ReturnType RetType, std::vector<unsigned char*>* Signature, std::wstring* SignatureMask);
-	Function(Process* process, void* Address, CallingConvention CallConv, int ArgCount, ReturnType RetType, std::vector<unsigned char*>* Signature, std::wstring* SignatureMask);
+	Function(void* Address, CallingConvention CallConv, int ArgCount, ReturnType RetType);
+	Function(Process* process, void* Address, CallingConvention CallConv, int ArgCount, ReturnType RetType);
 
 	~Function();
 

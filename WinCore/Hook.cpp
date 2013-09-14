@@ -348,16 +348,33 @@ Hook* Hook::CreateHook(Function* TargetFunction, std::wstring* Name, DWORD Defau
 	DWORD wildcard = 0x1337;
 
 	// Patch in required info
-	int num_args_to_clean = TargetFunction->GetArgCount() + 1;
+	int num_args_to_clean = 0; 
+	int num_fn_args = 0;
 
-	num_args_to_clean += (TargetFunction->GetCallingConvention() == THISCALL_CALLCONV) ? 1 : 0;
+	switch (TargetFunction->GetCallingConvention())
+	{
+	case CDECL_CALLCONV:
+		num_args_to_clean = 1;
+		num_fn_args = TargetFunction->GetArgCount() + 1;
+		break;
+
+	case THISCALL_CALLCONV:
+		num_args_to_clean = 1;
+		num_fn_args = 1;
+
+	case STDCALL_CALLCONV:
+		num_args_to_clean += TargetFunction->GetArgCount() + 1;
+		num_fn_args += TargetFunction->GetArgCount() + 1;
+		break;
+
+	default:
+		num_args_to_clean = TargetFunction->GetArgCount() + 1;
+	}
 
 	Function* global_detour_fn = new Function(&Hook::global_detour,
 											  CDECL_CALLCONV,
-											  num_args_to_clean,
-											  DWORD_SIZE,
-											  NULL,
-											  NULL);
+											  num_fn_args,
+											  DWORD_SIZE);
 
 	Function* global_detour_fn_wrapped = global_detour_fn->CreateStdcallWrapper(num_args_to_clean);
 
@@ -394,9 +411,7 @@ Hook* Hook::CreateHook(Function* TargetFunction, std::wstring* Name, DWORD Defau
 	Function* unhooked_fn = new Function(unhooked_fn_region->GetStartAddress(), 
 											TargetFunction->GetCallingConvention(),
 											TargetFunction->GetArgCount(),
-											TargetFunction->GetReturnType(),
-											NULL,
-											NULL);
+											TargetFunction->GetReturnType());
 	// Function* stdcall_wrapped_unhooked_fn = unhooked_fn->CreateStdcallWrapper();
 
 	Hook* ret = new Hook(TargetFunction, Name, unhooked_fn, DefaultReturnValue, old_code, patch);
