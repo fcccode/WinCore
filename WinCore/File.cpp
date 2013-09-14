@@ -25,7 +25,7 @@ THE SOFTWARE.
 
 namespace tcpie { namespace wincore {
 
-File::File(std::wstring* Path)
+File::File(const std::wstring* Path)
 {
 	WCHAR temp_path[MAX_PATH];
 	WCHAR temp_path2[MAX_PATH];

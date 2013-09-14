@@ -40,16 +40,16 @@ public:
 
 	~MemoryRegion() { }
 
-	void* GetStartAddress() { return this->start_address; }
-	void* GetEndAddress() { return this->end_address; }
-	DWORD GetSize() { return this->size; }
+	void* GetStartAddress() const { return this->start_address; }
+	void* GetEndAddress() const { return this->end_address; }
+	DWORD GetSize() const { return this->size; }
 
-	void* ReplaceFirstOccurence(DWORD Occurence, DWORD Replacement);
+	void* ReplaceFirstOccurence(DWORD Occurence, DWORD Replacement) const;
 
-	void* FindAddress(const std::vector<BYTE>* Signature, const std::vector<char>* SignatureMask, size_t StepSize = 1);
+	void* FindAddress(const std::vector<BYTE>* Signature, const std::vector<char>* SignatureMask, size_t StepSize = 1) const;
 
-	bool ContainsAddress(void* Address);
-	bool OverlapsWith(MemoryRegion* Region);
+	bool ContainsAddress(void* Address) const;
+	bool OverlapsWith(const MemoryRegion* Region) const;
 };
 
 } }

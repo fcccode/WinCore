@@ -37,9 +37,21 @@ Module::Module(MODULEENTRY32W ModuleInfo)
 	this->name = new std::wstring(this->module_info.szModule);
 }
 
-std::vector<Thread*>* Module::FindThreadsStartedHere()
+Module::~Module()
 {
-	std::vector<Thread*>* threads = this->owning_process->GetThreads();
+	delete this->memory_region;
+	delete this->path;
+	delete this->name;
+
+	if (this->owning_process != NULL)
+	{
+		delete this->owning_process;
+	}
+}
+
+std::vector<Thread*>* Module::FindThreadsStartedHere() const
+{
+	std::vector<Thread*>* threads = this->owning_process->FindThreads();
 	std::vector<Thread*>* ret = new std::vector<Thread*>();
 
 	for (size_t i = 0; i < threads->size(); i++)
@@ -55,7 +67,7 @@ std::vector<Thread*>* Module::FindThreadsStartedHere()
 	return ret;
 }
 
-Process* Module::GetOwningProcess()
+const Process* Module::GetOwningProcess()
 {
 	if (this->owning_process == NULL)
 	{

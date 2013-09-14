@@ -50,23 +50,23 @@ public:
 	Process(PROCESSENTRY32W ProcessInfo);
 	~Process();
 
-	const DWORD GetId();
+	DWORD GetId() const;
 
-	std::wstring* GetName();
-	Module* GetMainModule();
+	const std::wstring* GetName() const;
+	const Module* GetMainModule() const;
 	
-	std::vector<Module*>* GetModules();
-	std::vector<Thread*>* GetThreads();
+	std::vector<Module*>* FindModules() const;
+	std::vector<Thread*>* FindThreads() const;
 
-	MemoryRegion* WriteMemory(MemoryRegion* MemoryToWrite, void* Destination = NULL);
-	MemoryRegion* WriteMemory(void* Start, DWORD Size, void* Destination = NULL);
+	MemoryRegion* WriteMemory(const MemoryRegion* MemoryToWrite, void* Destination = NULL) const;
+	MemoryRegion* WriteMemory(void* Start, DWORD Size, void* Destination = NULL) const;
 	
-	bool FreeMemory(MemoryRegion* Region);
+	bool FreeMemory(MemoryRegion* Region) const;
 
-	std::vector<BYTE>* ReadMemory(MemoryRegion* Region);
+	std::vector<BYTE>* ReadMemory(const MemoryRegion* Region) const;
 
-	Module* FindModuleByName(std::wstring* Name);
-	Thread* GetOldestThread();
+	Module* FindModuleByName(const std::wstring* Name);
+	Thread* GetOldestThread() const;
 	
 	static DWORD GetCurrentProcessId();
 	static Process* GetCurrentProcess();

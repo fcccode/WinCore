@@ -47,9 +47,14 @@ Thread::Thread(THREADENTRY32 ThreadInfo)
 Thread::~Thread()
 {
 	CloseHandle(this->handle);
+
+	if (this->owner != NULL)
+	{
+		delete this->owner;
+	}
 }
 
-Process* Thread::GetOwningProcess()
+const Process* Thread::GetOwningProcess()
 {
 	if (this->owner == NULL)
 	{
@@ -59,7 +64,7 @@ Process* Thread::GetOwningProcess()
 	return this->owner;
 }
 
-void Thread::PushToStack(std::vector<void*>* Args)
+void Thread::PushToStack(const std::vector<void*>* Args)
 {
 	CONTEXT curr_context = this->GetContext();
 	curr_context.ContextFlags = CONTEXT_ALL | CONTEXT_DEBUG_REGISTERS;
@@ -88,17 +93,17 @@ void Thread::PushToStack(std::vector<void*>* Args)
 	this->SetContext(curr_context);	
 }
 
-void Thread::Suspend()
+void Thread::Suspend() const
 {
 	SuspendThread(this->handle);
 }
 
-void Thread::Resume()
+void Thread::Resume() const
 {
 	ResumeThread(this->handle);
 }
 
-CONTEXT Thread::GetContext()
+CONTEXT Thread::GetContext() const
 {
 	CONTEXT ret;
 	ret.ContextFlags = CONTEXT_ALL | CONTEXT_DEBUG_REGISTERS;
@@ -107,7 +112,7 @@ CONTEXT Thread::GetContext()
 	return ret;
 }
 
-bool Thread::SetContext(CONTEXT value)
+bool Thread::SetContext(CONTEXT value) const
 {
 	return SetThreadContext(this->handle, &value) != 0;
 }
@@ -130,7 +135,7 @@ Thread* Thread::GetCurrentThread()
 	return Thread::FindThreadById(id);
 }
 
-Thread* Thread::FindOldest(std::vector<Thread*>* Threads)
+Thread* Thread::FindOldest(const std::vector<Thread*>* Threads)
 {
 	Thread* oldest_thread = NULL;
 	FILETIME oldest_time;
@@ -245,7 +250,7 @@ void* Thread::GetStartAddress()
     return startAddr;
 }
 
-Thread* Thread::Create(Process* HostProcess, void* StartAddress, void* Parameter)
+Thread* Thread::Create(const Process* HostProcess, void* StartAddress, void* Parameter)
 {
 	DWORD thread_id = 0;
 

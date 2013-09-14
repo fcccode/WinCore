@@ -1,0 +1,12 @@
+Conventions to avoid memory leaks in the WinCore framework
+==========================================================
+v 2013-09-14
+
+	(Note that in most cases void* does not point to newly allocated memory. In such cases it should be regarded as not-a-pointer. Use common sense ;-) )
+	
+	
+1. A class instance frees or deletes every non-const pointer member variable in its destructor.
+
+2. When a function returns a non-const pointer, the caller is responsible for cleaning up that object. (vice versa, if it is a const pointer, the caller should *not* clean it up.)
+
+3. When a function is passed a non-const pointer, that function (or the corresponding instance) is responsible for cleaning up that pointer. (vice versa, the function should *not* clean up const pointers.)

@@ -41,7 +41,8 @@ Process::Process(PROCESSENTRY32 ProcessInfo)
 	this->process_info = ProcessInfo;
 	this->name = new std::wstring(ProcessInfo.szExeFile);
 	
-	this->module_cache = this->GetModules();
+	this->module_cache = this->FindModules();
+	this->main_module = NULL;
 
 	for (size_t i = 0; i < this->module_cache->size(); i++)
 	{
@@ -57,15 +58,29 @@ Process::Process(PROCESSENTRY32 ProcessInfo)
 Process::~Process()
 {
 	CloseHandle(this->handle);
+
+	delete this->name;
+
+	if (this->main_module != NULL)
+	{
+		delete this->main_module;
+	}
+
+	for (size_t i = 0; i < this->module_cache->size(); i++)
+	{
+		delete this->module_cache->at(i);
+	}
+
+	delete this->module_cache;
 }
 
-const DWORD Process::GetId() { return this->id; }
+DWORD Process::GetId() const { return this->id; }
 
-std::wstring* Process::GetName() { return this->name; }
+const std::wstring* Process::GetName() const { return this->name; }
 
-Module* Process::GetMainModule() { return this->main_module; }
+const Module* Process::GetMainModule() const { return this->main_module; }
 
-std::vector<Module*>* Process::GetModules()
+std::vector<Module*>* Process::FindModules() const
 {
 	std::vector<Module*>* ret = new std::vector<Module*>();
 
@@ -91,7 +106,7 @@ std::vector<Module*>* Process::GetModules()
 	return ret;
 }
 
-std::vector<Thread*>* Process::GetThreads()
+std::vector<Thread*>* Process::FindThreads() const
 {
 	std::vector<Thread*>* ret = new std::vector<Thread*>();
 
@@ -126,12 +141,12 @@ std::vector<Thread*>* Process::GetThreads()
 	return ret;
 }
 
-MemoryRegion* Process::WriteMemory(MemoryRegion* MemoryToWrite, void* Destination /* = NULL */)
+MemoryRegion* Process::WriteMemory(const MemoryRegion* MemoryToWrite, void* Destination /* = NULL */) const
 {
 	return this->WriteMemory(MemoryToWrite->GetStartAddress(), MemoryToWrite->GetSize(), Destination);
 }
 
-MemoryRegion* Process::WriteMemory(void* Start, DWORD Size, void* Destination /* = NULL */)
+MemoryRegion* Process::WriteMemory(void* Start, DWORD Size, void* Destination /* = NULL */) const
 {
 	void* address = Destination;
 
@@ -147,12 +162,19 @@ MemoryRegion* Process::WriteMemory(void* Start, DWORD Size, void* Destination /*
 	return new MemoryRegion(address, (DWORD)num_written);
 }
 
-bool Process::FreeMemory(MemoryRegion* Region)
+bool Process::FreeMemory(MemoryRegion* Region) const
 {
-	return VirtualFreeEx(this->handle, Region->GetStartAddress(), 0, MEM_RELEASE) != 0; 
+	bool ret = VirtualFreeEx(this->handle, Region->GetStartAddress(), 0, MEM_RELEASE) != 0; 
+	
+	if (ret)
+	{
+		delete Region;
+	}
+
+	return ret;
 }
 
-Module* Process::FindModuleByName(std::wstring* Name)
+Module* Process::FindModuleByName(const std::wstring* Name)
 {
 	for (size_t j = 0; j < 2; j++)
 	{
@@ -166,16 +188,16 @@ Module* Process::FindModuleByName(std::wstring* Name)
 
 		if (j == 0)
 		{
-			this->module_cache = this->GetModules();
+			this->module_cache = this->FindModules();
 		}
 	}
 
 	return NULL;
 }
 
-Thread* Process::GetOldestThread()
+Thread* Process::GetOldestThread() const
 {
-	return Thread::FindOldest(this->GetThreads());
+	return Thread::FindOldest(this->FindThreads());
 }
 
 Process* Process::FindProcessById(DWORD Id)
@@ -229,7 +251,7 @@ std::vector<Process*>* Process::GetSystemProcesses()
 	return ret;
 }
 
-std::vector<BYTE>* Process::ReadMemory(MemoryRegion* Region)
+std::vector<BYTE>* Process::ReadMemory(const MemoryRegion* Region) const
 {
 	BYTE* ret = new BYTE[Region->GetSize()];
 	SIZE_T num_bytes_read = 0;
