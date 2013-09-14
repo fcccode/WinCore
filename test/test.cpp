@@ -51,7 +51,11 @@ DetourRet __stdcall add_detour(DetourArgs* args)
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-	Function* target = new Function(add,					// Address
+	vector<BYTE>* signature = new std::vector<BYTE>((BYTE*)add, (BYTE*)add_detour);
+	vector<char>* mask = new std::vector<char>(signature->size(), 'x');
+
+	Function* target = Function::FindFunction(signature,
+									mask,
 									CDECL_CALLCONV,			// Calling convention
 									2,						// Number of arguments
 									DWORD_SIZE);			// Return type

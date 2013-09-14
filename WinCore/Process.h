@@ -39,7 +39,7 @@ private:
 	DWORD id;
 	HANDLE handle;
 	PROCESSENTRY32W process_info;
-	std::wstring* path;
+	std::wstring* name;
 	Module* main_module;
 
 	std::vector<Module*>* module_cache;
@@ -52,7 +52,7 @@ public:
 
 	const DWORD GetId();
 
-	std::wstring* GetPath();
+	std::wstring* GetName();
 	Module* GetMainModule();
 	
 	std::vector<Module*>* GetModules();

@@ -39,13 +39,13 @@ Process::Process(PROCESSENTRY32 ProcessInfo)
 	this->id = ProcessInfo.th32ProcessID;
 	this->handle = OpenProcess(PROCESS_TINKER, false, this->id);
 	this->process_info = ProcessInfo;
-	this->path = new std::wstring(ProcessInfo.szExeFile);
-
+	this->name = new std::wstring(ProcessInfo.szExeFile);
+	
 	this->module_cache = this->GetModules();
 
 	for (size_t i = 0; i < this->module_cache->size(); i++)
 	{
-		if (this->module_cache->at(i)->GetId() == this->process_info.th32ModuleID)
+		if (this->module_cache->at(i)->GetId() == 1)
 		{
 			this->main_module = this->module_cache->at(i);
 
@@ -61,7 +61,7 @@ Process::~Process()
 
 const DWORD Process::GetId() { return this->id; }
 
-std::wstring* Process::GetPath() { return this->path; }
+std::wstring* Process::GetName() { return this->name; }
 
 Module* Process::GetMainModule() { return this->main_module; }
 

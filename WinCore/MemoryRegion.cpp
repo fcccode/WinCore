@@ -64,6 +64,7 @@ void* MemoryRegion::FindAddress(const std::vector<BYTE>* Signature, const std::v
 	}
 
 	unsigned int counter = 0;
+	void* start = this->GetStartAddress();
 
 	for (BYTE* i = (BYTE*)this->GetStartAddress(); i <= (BYTE*)this->GetEndAddress(); i += StepSize)
 	{
@@ -74,11 +75,12 @@ void* MemoryRegion::FindAddress(const std::vector<BYTE>* Signature, const std::v
 		else if (*i != (BYTE)Signature->at(counter))
 		{
 			counter = 0;
+			start = i + StepSize;
 		}
 
 		if (counter >= Signature->size() - 1)
 		{
-			return (void*)i;
+			return (void*)start;
 		}
 	}
 
