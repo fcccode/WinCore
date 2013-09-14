@@ -23,6 +23,8 @@ THE SOFTWARE.
 #ifndef _MEMORYREGION_H_
 #define _MEMORYREGION_H_
 
+#include <vector>
+
 namespace tcpie { namespace wincore {
 
 class __declspec(dllexport) MemoryRegion
@@ -43,6 +45,8 @@ public:
 	DWORD GetSize() { return this->size; }
 
 	void* ReplaceFirstOccurence(DWORD Occurence, DWORD Replacement);
+
+	void* FindAddress(const std::vector<BYTE>* Signature, const std::vector<char>* SignatureMask, size_t StepSize = 1);
 
 	bool ContainsAddress(void* Address);
 	bool OverlapsWith(MemoryRegion* Region);
