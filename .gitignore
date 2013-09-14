@@ -2,6 +2,7 @@
 #ignore thumbnails created by windows
 Thumbs.db
 
+*.sdf
 *.cppcheck
 *.dll
 *.ipch
@@ -31,3 +32,4 @@ obj/
 [Rr]elease*/
 _ReSharper*/
 [Tt]est[Rr]esult*
+WinCore.sdf
