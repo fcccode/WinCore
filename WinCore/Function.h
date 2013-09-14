@@ -84,6 +84,9 @@ protected:
 	MemoryRegion* CreateFunctionStackCleaner(size_t NumArgsToClean);
 
 public:
+	static Function* FindFunction(const std::vector<BYTE>* Signature, const std::vector<char>* SignatureMask, CallingConvention CallConv, int ArgCount, ReturnType RetType);
+	static Function* FindFunction(const std::vector<BYTE>* Signature, const std::vector<char>* SignatureMask, Process* process, CallingConvention CallConv, int ArgCount, ReturnType RetType);
+
 	Function(Function& other);
 	Function(void* Address, CallingConvention CallConv, int ArgCount, ReturnType RetType);
 	Function(Process* process, void* Address, CallingConvention CallConv, int ArgCount, ReturnType RetType);

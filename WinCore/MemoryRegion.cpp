@@ -56,6 +56,35 @@ void* MemoryRegion::ReplaceFirstOccurence(DWORD Occurence, DWORD Replacement)
 	return NULL;
 }
 
+void* MemoryRegion::FindAddress(const std::vector<BYTE>* Signature, const std::vector<char>* SignatureMask, size_t StepSize)
+{
+	if (Signature == NULL || SignatureMask == NULL)
+	{
+		return NULL;
+	}
+
+	unsigned int counter = 0;
+
+	for (BYTE* i = (BYTE*)this->GetStartAddress(); i <= (BYTE*)this->GetEndAddress(); i += StepSize)
+	{
+		if (*i == (BYTE)Signature->at(counter) || SignatureMask->at(counter) == '?')
+		{
+			counter++;
+		}
+		else if (*i != (BYTE)Signature->at(counter))
+		{
+			counter = 0;
+		}
+
+		if (counter >= Signature->size() - 1)
+		{
+			return (void*)i;
+		}
+	}
+
+	return NULL;
+}
+
 bool MemoryRegion::ContainsAddress(void* Address)
 {
 	return (Address >= this->start_address && Address <= this->end_address);

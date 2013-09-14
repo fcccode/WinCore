@@ -26,6 +26,7 @@ THE SOFTWARE.
 #include "Process.h"
 #include "assembly.h"
 #include "MemoryRegion.h"
+#include "Module.h"
 
 #include "ADE32.h"
 
@@ -61,6 +62,50 @@ Function::Function(Process* process, void* Address, CallingConvention CallConv, 
 	this->return_type = RetType;
 	this->calling_convention = CallConv;
 	this->patchinfo = NULL;
+}
+
+Function* Function::FindFunction(const std::vector<BYTE>* Signature, const std::vector<char>* SignatureMask, CallingConvention CallConv, int ArgCount, ReturnType RetType)
+{
+	return Function::FindFunction(Signature, SignatureMask, Process::GetCurrentProcess(), CallConv, ArgCount, RetType);
+}
+
+Function* Function::FindFunction(const std::vector<BYTE>* Signature, const std::vector<char>* SignatureMask, Process* process, CallingConvention CallConv, int ArgCount, ReturnType RetType)
+{
+	Module* module = process->GetMainModule();
+
+	void* address = module->GetMemoryRegion()->FindAddress(Signature, SignatureMask);
+
+	if (address == NULL)
+	{
+		// look in other modules
+		std::vector<Module*>* mods = process->GetModules();
+
+		for (size_t i = 0; i < mods->size(); i++)
+		{
+			if (mods->at(i)->GetId() == module->GetId())
+			{
+				continue;
+			}
+
+			address = mods->at(i)->GetMemoryRegion()->FindAddress(Signature, SignatureMask);
+
+			if (address != NULL)
+			{
+				break;
+			}
+		}
+
+		delete mods;
+
+		if (address == NULL)
+		{
+			return NULL;
+		}
+	}
+
+	delete module;
+
+	return new Function(process, address, CallConv, ArgCount, RetType);
 }
 
 Function::~Function()
