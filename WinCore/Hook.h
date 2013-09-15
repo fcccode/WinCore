@@ -154,8 +154,7 @@ private:
 	DWORD detour(void* instance, std::vector<void*>* args);
 	static DWORD __cdecl global_detour(Hook* hook, ...);
 
-public:
-	
+public:	
 	void SetEnabled(bool enabled);
 	void Enable();
 	void Disable();
