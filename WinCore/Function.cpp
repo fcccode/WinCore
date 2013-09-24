@@ -247,7 +247,6 @@ bool Function::callInDifferentThread(const Thread* CallingThread, const std::vec
 		Sleep(1);
 	}
 	
-	std::cout << "fn call failed." << std::endl;
 
 	// Failure. Set ESP back:
 	CallingThread->Suspend();
@@ -257,7 +256,6 @@ bool Function::callInDifferentThread(const Thread* CallingThread, const std::vec
 	if (context.Esp == esp_after)
 	{
 		context.Esp += (args->size() + 1) * sizeof(DWORD*);
-		std::cout << "Resetting ESP" << std::endl;
 	}
 
 	CallingThread->SetContext(context);
@@ -273,8 +271,6 @@ bool Function::callInDifferentThread(const Thread* CallingThread, const std::vec
 
 bool Function::callInDifferentProcess(const Process* TargetProcess, const Thread* CallingThread, const std::vector<void*>* Args, void* instance, bool cleanup, void* asm_fn, DWORD* return_value) const
 {
-	std::cout << "addr of remote asm fn: 0x" << std::hex << (DWORD)asm_fn << std::dec << " calling thread id: " << std::hex << CallingThread->GetId() << std::dec << std::endl;
-
 	CallingThread->Suspend();
 
 	CONTEXT context = CallingThread->GetContext();
@@ -325,13 +321,8 @@ bool Function::callInDifferentProcess(const Process* TargetProcess, const Thread
 		context = CallingThread->GetContext();
 		CallingThread->Resume();
 
-		std::cout << "eip: 0x" << std::hex << context.Eip << std::dec << std::endl;
 		Sleep(15);
 	}	
-	
-	std::cout << "fn call timed out." << std::endl;
-	
-	MessageBoxA(NULL, "stop", "", MB_OK);
 
 	// Failure. Set ESP back:
 	CallingThread->Suspend();
@@ -341,7 +332,6 @@ bool Function::callInDifferentProcess(const Process* TargetProcess, const Thread
 	if (context.Esp == esp_after)
 	{
 		context.Esp += (args->size() + 1) * sizeof(DWORD*);
-		std::cout << "Resetting ESP" << std::endl;
 	}
 
 	CallingThread->SetContext(context);

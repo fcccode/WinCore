@@ -41,8 +41,6 @@ Process::Process(PROCESSENTRY32 ProcessInfo)
 	this->process_info = ProcessInfo;
 	
 	this->name = new std::wstring(ProcessInfo.szExeFile);
-	
-	std::wcout << "this->name: " << *this->name << std::endl;
 
 	this->module_cache = this->FindModules();
 	this->main_module = NULL;
@@ -60,8 +58,6 @@ Process::Process(PROCESSENTRY32 ProcessInfo)
 
 Process::~Process()
 {
-	std::wcout << "deleting process " << *this->name << std::endl;
-
 	CloseHandle(this->handle);
 
 	delete this->name;
@@ -81,7 +77,7 @@ Process::~Process()
 
 DWORD Process::GetId() const { return this->id; }
 
-const std::wstring* Process::GetName() const { std::wcout << "Returning name " << *this->name << std::endl; return this->name; }
+const std::wstring* Process::GetName() const { return this->name; }
 
 const Module* Process::GetMainModule() const { return this->main_module; }
 
@@ -222,8 +218,6 @@ Process* Process::FindProcessById(DWORD Id)
 
 std::vector<Process*>* Process::GetSystemProcesses()
 {
-	std::cout << "getting processes..." << std::endl;
-
 	std::vector<Process*>* ret = new std::vector<Process*>();
 
 	PROCESSENTRY32 pe;
@@ -250,8 +244,6 @@ std::vector<Process*>* Process::GetSystemProcesses()
     }
 
     CloseHandle(thSnapshot);
-    
-	std::cout << "done." << std::endl;
 
 	return ret;
 }

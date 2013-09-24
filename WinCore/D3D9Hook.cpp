@@ -84,8 +84,6 @@ DetourRet D3D9Hook::ReleasedDetour(DetourArgs* args)
 
 DetourRet D3D9Hook::EndSceneDetour(DetourArgs* args)
 {
-	std::cout << "EndScene detour!" << std::endl;
-
 	for (size_t i = 0; i < D3D9Hook::callbacks->size(); i++)
 	{
 		D3D9Hook::callbacks->at(i)->OnEndScene((IDirect3DDevice9*)args->Arguments->at(0));
@@ -234,20 +232,14 @@ bool D3D9Hook::IsD3D9Present()
 
 		return true;
 	}
-
-	std::cout << "d3d9.dll not present!" << std::endl;
-
+	
 	return false;
 }
 
 bool D3D9Hook::RegisterDetour(ID3D9CallbackClass* Callback)
 {
-	std::cout << "RegisterDetour()" << std::endl;
-
 	if (!D3D9Hook::IsD3D9Present() || Callback->IsRegistered())
 	{
-		std::cout << "RegisterDetour() pre-check failed." << std::endl;
-
 		return false;
 	}
 
@@ -257,8 +249,6 @@ bool D3D9Hook::RegisterDetour(ID3D9CallbackClass* Callback)
 
 		if (!ret)
 		{
-			std::cout << "CreateHooks() failed :-(" << std::endl;
-
 			return false;
 		}
 	}
