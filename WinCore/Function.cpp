@@ -462,7 +462,7 @@ bool Function::Call(const std::vector<void*>* Args, DWORD* ReturnValue /* = NULL
 {
 	if (this->process->GetId() == Process::GetCurrentProcessId())
 	{
-		return this->Call(Args, Thread::GetCurrentThread(), ReturnValue, Instance);
+		return this->Call(Args, NULL, ReturnValue, Instance);
 	}
 
 	std::vector<Thread*>* threads = this->process->FindThreads();
@@ -498,7 +498,7 @@ bool Function::Call(const std::vector<void*>* Args, const Thread* CallingThread,
 
 		if (this->process->GetId() == Process::GetCurrentProcessId())
 		{
-			if (CallingThread->GetId() == Thread::GetCurrentThreadId())
+			if (CallingThread == NULL || CallingThread->GetId() == Thread::GetCurrentThreadId())
 			{
 				*ReturnValue = asm_call_fn(this->address, Args->size(), (DWORD*)&(*Args)[0], NULL, false);
 

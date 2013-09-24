@@ -123,6 +123,9 @@ public:
 	bool Call(const std::vector<void*>* Args, DWORD* ReturnValue = NULL, void* Instance = NULL) const;
 
 	// Calls the function using the specified thread.
+	//		If the specified thread is NULL, the
+	//		current thread will be used.
+	//
 	//		Note that the call may time out if the
 	//		specified thread is currently sleeping!
 	bool Call(const std::vector<void*>* Args, const Thread* CallingThread, DWORD* ReturnValue = NULL, void* Instance = NULL) const;

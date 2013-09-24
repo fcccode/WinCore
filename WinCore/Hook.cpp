@@ -171,16 +171,6 @@ DWORD Hook::detour(void* instance, std::vector<void*>* args)
 
 DWORD Hook::global_detour(Hook* hook, ...)
 {
-	try
-	{
-		const std::wstring* hook_name = hook->GetName();
-	}
-	catch (...)
-	{
-		// Our hook is deleted! Let's just return...
-		return 0;
-	}
-
 	void* instance = NULL;
 	std::vector<void*> args;
 
@@ -196,7 +186,12 @@ DWORD Hook::global_detour(Hook* hook, ...)
 		args = std::vector<void*>(args_start, (DWORD**)((DWORD)args_start + (DWORD)hook->GetFunction()->GetArgCount() * sizeof(void*)));
 	}
 
-	return hook->detour(instance, &args);
+	std::vector<void*> call_args = std::vector<void*>(args.rbegin(), args.rend());
+
+	DWORD ret = 1;
+	hook->GetUnhookedFunction()->Call(&call_args, Thread::GetCurrentThread(), &ret, instance);
+
+	return ret;
 }
 
 Hook::Hook(const Function* TargetFunction, std::wstring* Name, Function* UnhookedFunction, DWORD DefaultReturnValue, MemoryRegion* OldCode, MemoryRegion* PatchCode)
