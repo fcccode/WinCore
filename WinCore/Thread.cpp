@@ -34,6 +34,8 @@ namespace tcpie { namespace wincore {
 
 typedef int (WINAPI *NTQUERYINFORMATIONTHREAD)(HANDLE, LONG, PVOID, ULONG, PULONG);
 
+std::map<DWORD, Thread*>* Thread::thread_pool = new std::map<DWORD, Thread*>();
+
 Thread::Thread(THREADENTRY32 ThreadInfo)
 {
 	this->thread_info = ThreadInfo;
@@ -52,6 +54,18 @@ Thread::~Thread()
 	{
 		delete this->owner;
 	}
+}
+
+bool Thread::HasTerminated() const
+{
+	DWORD result = WaitForSingleObject(this->handle, 0);
+
+	if (result == WAIT_OBJECT_0) 
+	{
+		return true;
+	}
+	
+	return false;
 }
 
 const Process* Thread::GetOwningProcess()
@@ -161,22 +175,39 @@ Thread* Thread::FindOldest(const std::vector<Thread*>* Threads)
 
 Thread* Thread::FindThreadById(DWORD ThreadId)
 {
-	std::vector<Thread*>* threads = Thread::GetSystemThreads();
 	Thread* ret_thread = NULL;
+
+	try
+	{
+		ret_thread = Thread::thread_pool->at(ThreadId);
+
+		return ret_thread;
+	}
+	catch (...)
+	{
+	}
+
+	std::vector<Thread*>* threads = Thread::GetSystemThreads();
+	Thread::thread_pool->clear();
 
 	for (size_t i = 0; i < threads->size(); i++)
 	{
-		if (threads->at(i)->GetId() == ThreadId)
-		{
-			ret_thread = threads->at(i);
-
-			break;
-		}
+		Thread::thread_pool->insert(std::pair<DWORD, Thread*>(threads->at(i)->GetId(), threads->at(i)));
 	}
 
 	delete threads;
 
-	return ret_thread;
+	try
+	{
+		ret_thread = Thread::thread_pool->at(ThreadId);
+
+		return ret_thread;
+	}
+	catch (...)
+	{
+	}
+
+	return NULL;
 }
 
 std::vector<Thread*>* Thread::GetSystemThreads()
