@@ -200,7 +200,7 @@ Module* Process::FindModuleByName(const std::wstring* Name)
 	return NULL;
 }
 
-Thread* Process::GetOldestThread() const
+const Thread* Process::GetOldestThread() const
 {
 	return Thread::FindOldest(this->FindThreads());
 }

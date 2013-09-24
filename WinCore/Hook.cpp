@@ -65,7 +65,7 @@ std::map<std::wstring, Hook*>* Hook::hooks = new std::map<std::wstring, Hook*>()
 
 DWORD Hook::detour(void* instance, std::vector<void*>* args)
 {
-	Thread* t = Thread::GetCurrentThread();
+	const Thread* t = Thread::GetCurrentThread();
 
 	DetourRet final_ret = DETOUR_NOCHANGE;
 	DWORD custom_returnvalue = this->default_returnvalue;
@@ -163,7 +163,6 @@ DWORD Hook::detour(void* instance, std::vector<void*>* args)
 		delete temp_args;
 	}
 
-	delete t;
 	delete custom_args;
 
 	return ret;
@@ -186,12 +185,7 @@ DWORD Hook::global_detour(Hook* hook, ...)
 		args = std::vector<void*>(args_start, (DWORD**)((DWORD)args_start + (DWORD)hook->GetFunction()->GetArgCount() * sizeof(void*)));
 	}
 
-	std::vector<void*> call_args = std::vector<void*>(args.rbegin(), args.rend());
-
-	DWORD ret = 1;
-	hook->GetUnhookedFunction()->Call(&call_args, Thread::GetCurrentThread(), &ret, instance);
-
-	return ret;
+	return hook->detour(instance, &args);
 }
 
 Hook::Hook(const Function* TargetFunction, std::wstring* Name, Function* UnhookedFunction, DWORD DefaultReturnValue, MemoryRegion* OldCode, MemoryRegion* PatchCode)

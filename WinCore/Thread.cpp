@@ -140,7 +140,7 @@ DWORD Thread::GetCurrentThreadId()
 	return id;
 }
 
-Thread* Thread::GetCurrentThread()
+const Thread* Thread::GetCurrentThread()
 {
 	HANDLE curr_handle = ::GetCurrentThread();
 	DWORD id = GetThreadId(curr_handle);
@@ -149,7 +149,7 @@ Thread* Thread::GetCurrentThread()
 	return Thread::FindThreadById(id);
 }
 
-Thread* Thread::FindOldest(const std::vector<Thread*>* Threads)
+const Thread* Thread::FindOldest(const std::vector<Thread*>* Threads)
 {
 	Thread* oldest_thread = NULL;
 	FILETIME oldest_time;
@@ -173,7 +173,7 @@ Thread* Thread::FindOldest(const std::vector<Thread*>* Threads)
 	return oldest_thread;
 }
 
-Thread* Thread::FindThreadById(DWORD ThreadId)
+const Thread* Thread::FindThreadById(DWORD ThreadId)
 {
 	Thread* ret_thread = NULL;
 
@@ -188,6 +188,7 @@ Thread* Thread::FindThreadById(DWORD ThreadId)
 	}
 
 	std::vector<Thread*>* threads = Thread::GetSystemThreads();
+
 	Thread::thread_pool->clear();
 
 	for (size_t i = 0; i < threads->size(); i++)
@@ -296,7 +297,7 @@ Thread* Thread::Create(const Process* HostProcess, void* StartAddress, void* Par
 		CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)StartAddress, (LPVOID)Parameter, 0, &thread_id);
 	}
 
-	return Thread::FindThreadById(thread_id);
+	return const_cast<Thread*>(Thread::FindThreadById(thread_id));
 }
 
 } }

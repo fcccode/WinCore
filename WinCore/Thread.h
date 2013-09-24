@@ -65,9 +65,9 @@ public:
 	const Process* GetOwningProcess();
 
 	static DWORD GetCurrentThreadId();
-	static Thread* GetCurrentThread();
-	static Thread* FindOldest(const std::vector<Thread*>* Threads);
-	static Thread* FindThreadById(DWORD ThreadId);
+	static const Thread* GetCurrentThread();
+	static const Thread* FindOldest(const std::vector<Thread*>* Threads);
+	static const Thread* FindThreadById(DWORD ThreadId);
 	static std::vector<Thread*>* GetSystemThreads();
 	static Thread* Create(const Process* HostProcess, void* StartAddress, void* Parameter);
 };
