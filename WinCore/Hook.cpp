@@ -28,6 +28,8 @@ THE SOFTWARE.
 
 #include "assembly.h"
 
+#include <algorithm>
+
 #define PTRADD(ptr, diff) (void*)((DWORD)ptr + (DWORD)diff)
 
 namespace tcpie { namespace wincore {
@@ -63,7 +65,7 @@ std::map<std::wstring, Hook*>* Hook::hooks = new std::map<std::wstring, Hook*>()
 
 DWORD Hook::detour(void* instance, std::vector<void*>* args)
 {
-	Thread* t = Thread::GetCurrentThread();
+	const Thread* t = Thread::GetCurrentThread();
 
 	DetourRet final_ret = DETOUR_NOCHANGE;
 	DWORD custom_returnvalue = this->default_returnvalue;
@@ -130,7 +132,10 @@ DWORD Hook::detour(void* instance, std::vector<void*>* args)
 
 	if (final_ret != DETOUR_FNBLOCKED)
 	{
-		this->unhooked_function->Call(custom_args, t, &ret, instance);
+		// We must reverse the args
+		std::vector<void*> call_args = std::vector<void*>(custom_args->rbegin(), custom_args->rend());
+
+		this->unhooked_function->Call(&call_args, t, &ret, instance);
 	}
 
 	if ((int)final_ret & (int)DETOUR_RETCHANGED)
@@ -147,7 +152,7 @@ DWORD Hook::detour(void* instance, std::vector<void*>* args)
 
 		DetourArgs* d_args = new DetourArgs(this->post_detours->at(i), instance, temp_args, temp_custom_ret, final_ret);
 
-		DetourRet temp_ret = this->pre_detours->at(i)->CallDetour(d_args);
+		DetourRet temp_ret = this->post_detours->at(i)->CallDetour(d_args);
 
 		if (temp_ret == DETOUR_RETCHANGED || temp_ret == DETOUR_ARGRETCHANGED)
 		{
@@ -158,7 +163,6 @@ DWORD Hook::detour(void* instance, std::vector<void*>* args)
 		delete temp_args;
 	}
 
-	delete t;
 	delete custom_args;
 
 	return ret;
@@ -166,16 +170,6 @@ DWORD Hook::detour(void* instance, std::vector<void*>* args)
 
 DWORD Hook::global_detour(Hook* hook, ...)
 {
-	try
-	{
-		const std::wstring* hook_name = hook->GetName();
-	}
-	catch (...)
-	{
-		// Our hook is deleted! Let's just return...
-		return 0;
-	}
-
 	void* instance = NULL;
 	std::vector<void*> args;
 

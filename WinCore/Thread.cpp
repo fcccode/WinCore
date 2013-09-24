@@ -34,6 +34,8 @@ namespace tcpie { namespace wincore {
 
 typedef int (WINAPI *NTQUERYINFORMATIONTHREAD)(HANDLE, LONG, PVOID, ULONG, PULONG);
 
+std::map<DWORD, Thread*>* Thread::thread_pool = new std::map<DWORD, Thread*>();
+
 Thread::Thread(THREADENTRY32 ThreadInfo)
 {
 	this->thread_info = ThreadInfo;
@@ -52,6 +54,18 @@ Thread::~Thread()
 	{
 		delete this->owner;
 	}
+}
+
+bool Thread::HasTerminated() const
+{
+	DWORD result = WaitForSingleObject(this->handle, 0);
+
+	if (result == WAIT_OBJECT_0) 
+	{
+		return true;
+	}
+	
+	return false;
 }
 
 const Process* Thread::GetOwningProcess()
@@ -126,7 +140,7 @@ DWORD Thread::GetCurrentThreadId()
 	return id;
 }
 
-Thread* Thread::GetCurrentThread()
+const Thread* Thread::GetCurrentThread()
 {
 	HANDLE curr_handle = ::GetCurrentThread();
 	DWORD id = GetThreadId(curr_handle);
@@ -135,7 +149,7 @@ Thread* Thread::GetCurrentThread()
 	return Thread::FindThreadById(id);
 }
 
-Thread* Thread::FindOldest(const std::vector<Thread*>* Threads)
+const Thread* Thread::FindOldest(const std::vector<Thread*>* Threads)
 {
 	Thread* oldest_thread = NULL;
 	FILETIME oldest_time;
@@ -159,24 +173,42 @@ Thread* Thread::FindOldest(const std::vector<Thread*>* Threads)
 	return oldest_thread;
 }
 
-Thread* Thread::FindThreadById(DWORD ThreadId)
+const Thread* Thread::FindThreadById(DWORD ThreadId)
 {
-	std::vector<Thread*>* threads = Thread::GetSystemThreads();
 	Thread* ret_thread = NULL;
+
+	try
+	{
+		ret_thread = Thread::thread_pool->at(ThreadId);
+
+		return ret_thread;
+	}
+	catch (...)
+	{
+	}
+
+	std::vector<Thread*>* threads = Thread::GetSystemThreads();
+
+	Thread::thread_pool->clear();
 
 	for (size_t i = 0; i < threads->size(); i++)
 	{
-		if (threads->at(i)->GetId() == ThreadId)
-		{
-			ret_thread = threads->at(i);
-
-			break;
-		}
+		Thread::thread_pool->insert(std::pair<DWORD, Thread*>(threads->at(i)->GetId(), threads->at(i)));
 	}
 
 	delete threads;
 
-	return ret_thread;
+	try
+	{
+		ret_thread = Thread::thread_pool->at(ThreadId);
+
+		return ret_thread;
+	}
+	catch (...)
+	{
+	}
+
+	return NULL;
 }
 
 std::vector<Thread*>* Thread::GetSystemThreads()
@@ -265,7 +297,7 @@ Thread* Thread::Create(const Process* HostProcess, void* StartAddress, void* Par
 		CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)StartAddress, (LPVOID)Parameter, 0, &thread_id);
 	}
 
-	return Thread::FindThreadById(thread_id);
+	return const_cast<Thread*>(Thread::FindThreadById(thread_id));
 }
 
 } }

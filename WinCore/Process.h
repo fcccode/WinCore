@@ -66,7 +66,7 @@ public:
 	std::vector<BYTE>* ReadMemory(const MemoryRegion* Region) const;
 
 	Module* FindModuleByName(const std::wstring* Name);
-	Thread* GetOldestThread() const;
+	const Thread* GetOldestThread() const;
 	
 	static DWORD GetCurrentProcessId();
 	static Process* GetCurrentProcess();

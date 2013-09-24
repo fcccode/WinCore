@@ -81,6 +81,7 @@
   <ItemGroup>
     <ClInclude Include="ADE32.h" />
     <ClInclude Include="assembly.h" />
+    <ClInclude Include="D3D9Hook.h" />
     <ClInclude Include="File.h" />
     <ClInclude Include="Function.h" />
     <ClInclude Include="Hook.h" />
@@ -94,6 +95,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ADE32.cpp" />
+    <ClCompile Include="D3D9Hook.cpp" />
     <ClCompile Include="dllmain.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
