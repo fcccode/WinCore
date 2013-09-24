@@ -28,6 +28,8 @@ THE SOFTWARE.
 
 #include "assembly.h"
 
+#include <algorithm>
+
 #define PTRADD(ptr, diff) (void*)((DWORD)ptr + (DWORD)diff)
 
 namespace tcpie { namespace wincore {
@@ -130,7 +132,10 @@ DWORD Hook::detour(void* instance, std::vector<void*>* args)
 
 	if (final_ret != DETOUR_FNBLOCKED)
 	{
-		this->unhooked_function->Call(custom_args, t, &ret, instance);
+		// We must reverse the args
+		std::vector<void*> call_args = std::vector<void*>(custom_args->rbegin(), custom_args->rend());
+
+		this->unhooked_function->Call(&call_args, t, &ret, instance);
 	}
 
 	if ((int)final_ret & (int)DETOUR_RETCHANGED)
@@ -147,7 +152,7 @@ DWORD Hook::detour(void* instance, std::vector<void*>* args)
 
 		DetourArgs* d_args = new DetourArgs(this->post_detours->at(i), instance, temp_args, temp_custom_ret, final_ret);
 
-		DetourRet temp_ret = this->pre_detours->at(i)->CallDetour(d_args);
+		DetourRet temp_ret = this->post_detours->at(i)->CallDetour(d_args);
 
 		if (temp_ret == DETOUR_RETCHANGED || temp_ret == DETOUR_ARGRETCHANGED)
 		{

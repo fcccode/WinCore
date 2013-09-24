@@ -24,6 +24,8 @@ THE SOFTWARE.
 
 #include "D3D9Hook.h"
 
+#include <iostream>
+
 #pragma comment(lib, "d3d9.lib")
 
 // VMT Index defines
@@ -82,6 +84,8 @@ DetourRet D3D9Hook::ReleasedDetour(DetourArgs* args)
 
 DetourRet D3D9Hook::EndSceneDetour(DetourArgs* args)
 {
+	std::cout << "EndScene detour!" << std::endl;
+
 	for (size_t i = 0; i < D3D9Hook::callbacks->size(); i++)
 	{
 		D3D9Hook::callbacks->at(i)->OnEndScene((IDirect3DDevice9*)args->Arguments->at(0));
@@ -180,26 +184,33 @@ bool D3D9Hook::CreateHooks()
 
 	DWORD* vmt = (DWORD*)*(DWORD*)device;
 
-	device->Release();
+	void* reset_addr = (void*)vmt[VMTINDEX_RESET];
 
 	Function* reset_fn = new Function((void*)vmt[VMTINDEX_RESET], STDCALL_CALLCONV, 2, DWORD_SIZE);
 	D3D9Hook::ResetHook = Hook::CreateHook(reset_fn, new std::wstring(L"Reset"));
-	D3D9Hook::ResetHook->RegisterDetour(&D3D9Hook::ResetDetour, DETOUR_PRE);
+	Detour* reset_detour = D3D9Hook::ResetHook->RegisterDetour(&D3D9Hook::ResetDetour, DETOUR_PRE);
 
 	Function* lost_fn = new Function((void*)vmt[VMTINDEX_PRESENT], STDCALL_CALLCONV, 5, DWORD_SIZE);
 	D3D9Hook::LostHook = Hook::CreateHook(lost_fn, new std::wstring(L"Lost"));
-	D3D9Hook::LostHook->RegisterDetour(&D3D9Hook::LostDetour, DETOUR_POST);
+	Detour* lost_detour = D3D9Hook::LostHook->RegisterDetour(&D3D9Hook::LostDetour, DETOUR_POST);
 
 	Function* released_fn = new Function((void*)vmt[VMTINDEX_RELEASE], STDCALL_CALLCONV, 1, DWORD_SIZE);
 	D3D9Hook::ReleasedHook = Hook::CreateHook(released_fn, new std::wstring(L"Released"));
-	D3D9Hook::ReleasedHook->RegisterDetour(&D3D9Hook::ReleasedDetour, DETOUR_PRE);
+	Detour* released_detour = D3D9Hook::ReleasedHook->RegisterDetour(&D3D9Hook::ReleasedDetour, DETOUR_PRE);
 
 	Function* endscene_fn = new Function((void*)vmt[VMTINDEX_ENDSCENE], STDCALL_CALLCONV, 1, DWORD_SIZE);
 	D3D9Hook::EndSceneHook = Hook::CreateHook(endscene_fn, new std::wstring(L"EndScene"));
-	D3D9Hook::EndSceneHook->RegisterDetour(&D3D9Hook::EndSceneDetour, DETOUR_PRE);
+	Detour* endscene_detour = D3D9Hook::EndSceneHook->RegisterDetour(&D3D9Hook::EndSceneDetour, DETOUR_PRE);
 
-	if (D3D9Hook::ResetHook != NULL)
+	device->Release();
+
+	if (D3D9Hook::ResetHook != NULL && D3D9Hook::LostHook != NULL && D3D9Hook::ReleasedHook != NULL && D3D9Hook::EndSceneHook != NULL)
 	{
+		D3D9Hook::ResetHook->Enable();
+		D3D9Hook::LostHook->Enable();
+		D3D9Hook::ReleasedHook->Enable();
+		D3D9Hook::EndSceneHook->Enable();
+
 		return true;
 	}
 
@@ -212,18 +223,31 @@ bool D3D9Hook::IsD3D9Present()
 
 	if (hmod != NULL)
 	{
-		CloseHandle(hmod);
+		try
+		{
+			CloseHandle(hmod);
+		}
+		catch (...)
+		{
+
+		}
 
 		return true;
 	}
+
+	std::cout << "d3d9.dll not present!" << std::endl;
 
 	return false;
 }
 
 bool D3D9Hook::RegisterDetour(ID3D9CallbackClass* Callback)
 {
+	std::cout << "RegisterDetour()" << std::endl;
+
 	if (!D3D9Hook::IsD3D9Present() || Callback->IsRegistered())
 	{
+		std::cout << "RegisterDetour() pre-check failed." << std::endl;
+
 		return false;
 	}
 
@@ -233,6 +257,8 @@ bool D3D9Hook::RegisterDetour(ID3D9CallbackClass* Callback)
 
 		if (!ret)
 		{
+			std::cout << "CreateHooks() failed :-(" << std::endl;
+
 			return false;
 		}
 	}

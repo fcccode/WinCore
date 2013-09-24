@@ -40,6 +40,8 @@ private:
 	bool is_registered;
 
 public:
+	ID3D9CallbackClass() { this->is_registered = false; }
+
 	bool IsRegistered() { return this->is_registered; }
 
 	// Executed once during service start up, and for every time the device is reset
