@@ -177,17 +177,14 @@ Thread* Thread::FindThreadById(DWORD ThreadId)
 {
 	Thread* ret_thread = NULL;
 
-	if (Thread::thread_pool->size() != 0)
+	try
 	{
-		try
-		{
-			ret_thread = Thread::thread_pool->at(ThreadId);
+		ret_thread = Thread::thread_pool->at(ThreadId);
 
-			return ret_thread;
-		}
-		catch (...)
-		{
-		}
+		return ret_thread;
+	}
+	catch (...)
+	{
 	}
 
 	std::vector<Thread*>* threads = Thread::GetSystemThreads();
