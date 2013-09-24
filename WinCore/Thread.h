@@ -24,6 +24,7 @@ THE SOFTWARE.
 #define _THREAD_H_
 
 #include <vector>
+#include <map>
 #include <TlHelp32.h>
 
 namespace tcpie { namespace wincore {
@@ -41,6 +42,8 @@ private:
 	Process* owner;
 	DWORD owner_id;
 
+	static std::map<DWORD, Thread*>* thread_pool;
+
 public:
 	Thread(THREADENTRY32 ThreadInfo);
 	~Thread();
@@ -56,6 +59,8 @@ public:
 
 	CONTEXT GetContext() const;
 	bool SetContext(CONTEXT value) const;
+
+	bool HasTerminated() const;
 
 	const Process* GetOwningProcess();
 
