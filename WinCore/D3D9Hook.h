@@ -32,6 +32,11 @@ namespace tcpie { namespace wincore {
 
 class D3D9Hook;
 
+/// \class ID3D9CallbackClass
+/// @brief Base class to inherit from when registering for D3D9 callbacks
+///
+/// This class's methods will be called when the right D3D9 functions are called.
+/// You need to inherit from this class, to be able to register a D3D9 detour.
 class __declspec(dllexport) ID3D9CallbackClass
 {
 	friend class D3D9Hook;
@@ -42,24 +47,42 @@ private:
 public:
 	ID3D9CallbackClass() { this->is_registered = false; }
 
+	/// \fn		IsRegistered
+	/// @brief	Gets if the class instance is a registered detour.
+	/// @return Whether or not the instance is a registered detour.
 	bool IsRegistered() { return this->is_registered; }
 
-	// Executed once during service start up, and for every time the device is reset
-	// Create resources that will live through a reset here (i.e. D3DPOOL_DEFAULT)
+	/// \fn		OnDeviceReset
+	/// @brief	This function is called when Reset() is called on the D3D9 device.
+	///
+	/// Executed once during service start up, and for every time the device is reset
+	/// Create resources that will live through a reset here (i.e. D3DPOOL_DEFAULT)
 	virtual void OnDeviceReset(IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* pD3DPRESENT_PARAMETERS) = 0;
 
-	// Executed once during service shut down, and for every time the device is lost
-	// Release/delete you created in OnResetDevice here
+	/// \fn		OnDeviceLost
+	/// @brief	This function is called when the D3D device is lost.
+	///
+	/// Executed once during service shut down, and for every time the device is lost
+	/// Release/delete you created in OnResetDevice here
 	virtual void OnDeviceLost(IDirect3DDevice9* pDevice) = 0;
 
-	// Executed once during service shut down
-	// Release/delete you created in OnCreateDevice here
+	/// \fn		OnDeviceReleased
+	/// @brief	This function is called when the D3D device is released.
+	///
+	/// Executed once during service shut down
+	/// Release/delete you created in OnCreateDevice here
 	virtual void OnDeviceReleased(IDirect3DDevice9* pDevice) = 0;
 
-	// Executed for every frame that is rendered
+	/// \fn		OnEndScene
+	/// @brief	This function is called when EndScene() is called.
+	///
+	/// Executed for every frame that is rendered. If you would like to render graphics,
+	/// do it in this function.
 	virtual void OnEndScene(IDirect3DDevice9* pDevice) = 0;
 };
 
+/// \class D3D9Hook
+/// @brief Class which handles the hooking of D3D9
 class __declspec(dllexport) D3D9Hook
 {
 private:
@@ -82,8 +105,24 @@ private:
 	static bool CreateHooks();
 
 public:
+	/// \fn			IsD3D9Present
+	/// @brief		Gets whether d3d9.dll is present
+	/// @return		A value indicating if d3d9.dll is present
 	static bool IsD3D9Present();
+
+	/// \fn			RegisterDetour
+	/// @brief		Allows one to register a detour to D3D9
+	/// @param		Callback	The callback class instance to call when the hooked D3D9 functions are executed.
+	/// @return		A value indicating if detour registration was successful. This may fail for several reasons:
+	///				- D3D9 may not be present
+	///				- The detour was already registered
+	///				- D3D9 hooking failed
 	static bool RegisterDetour(ID3D9CallbackClass* Callback);
+
+	/// \fn			UnregisterDetour
+	/// @brief		Allows one to unregister a detour to D3D9
+	/// @param		Callback	The callback class instance to unregister
+	/// @return		A value indicating whether unregistration was successful. This may fail if the detour was not yet registered.
 	static bool UnregisterDetour(ID3D9CallbackClass* Callback);
 };
 

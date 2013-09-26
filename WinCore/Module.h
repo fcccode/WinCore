@@ -20,6 +20,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+/// @file Module
+/// @author tcpie
+/// @brief Contains code relevant to the Module class.
+
 #ifndef _MODULE_H_
 #define _MODULE_H_
 
@@ -32,6 +36,9 @@ class MemoryRegion;
 class Thread;
 class Process;
 
+/// @brief Describes a Windows module.
+///
+/// A module can be a loaded Dynamic Link Module (DLL), or an application's main module (example.exe)
 class __declspec(dllexport) Module
 {
 private:
@@ -42,15 +49,33 @@ private:
 	std::wstring* name;
 
 public:
+	/// @brief Constructs a Module.
+	/// @param ModuleInfo		The module's info.
 	Module(MODULEENTRY32W ModuleInfo);
+
+	/// @brief Destructs a Module.
 	~Module();
 
+	/// @brief Gets the process that owns this module.
+	/// @return The process this module belongs to.
 	const Process* GetOwningProcess();
 	
+	/// @brief Gets the module's name.
+	/// @return The module's name.
 	const std::wstring* GetName() const { return this->name; }
+
+	/// @brief Gets the module's ID.
+	/// @return The module's ID.
 	DWORD GetId() const { return this->module_info.th32ModuleID; }
+
+	/// @brief Gets the module's memory region.
+	/// @return The module's memory region.
 	const MemoryRegion* GetMemoryRegion() const { return this->memory_region; }
 
+	/// @brief Finds all threads started in this module.
+	/// @return A vector containing the threads started in this module.
+	///
+	/// The caller is responsible for deleting the vector and the contained Threads.
 	std::vector<Thread*>* FindThreadsStartedHere() const;
 };
 

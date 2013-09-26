@@ -196,7 +196,7 @@ Module* Process::FindModuleByName(const std::wstring* Name)
 	return NULL;
 }
 
-const Thread* Process::GetOldestThread() const
+const Thread* Process::FindOldestThread() const
 {
 	return Thread::FindOldest(this->FindThreads());
 }
@@ -253,16 +253,15 @@ std::vector<BYTE>* Process::ReadMemory(const MemoryRegion* Region) const
 	BYTE* ret = new BYTE[Region->GetSize()];
 	SIZE_T num_bytes_read = 0;
 
-	ReadProcessMemory(this->handle, Region->GetStartAddress(), ret, Region->GetSize(), &num_bytes_read);
-
-	std::vector<BYTE>* retvector = new std::vector<BYTE>(ret, ret + Region->GetSize());
-
-	/*
-	for (int i = 0; i < Region->GetSize(); i++)
+	bool success = ReadProcessMemory(this->handle, Region->GetStartAddress(), ret, Region->GetSize(), &num_bytes_read) != 0;
+	
+	std::vector<BYTE>* retvector = NULL;
+	
+	if (success)
 	{
-		retvector->push_back(ret[i]);
+		retvector = new std::vector<BYTE>(ret, ret + Region->GetSize());
 	}
-	*/
+
 	delete [] ret;
 
 	return retvector;

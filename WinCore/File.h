@@ -20,6 +20,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+/// @file		Function.h
+/// @author		tcpie
+/// @brief      Contains code relevant for the File class.
+
 #ifndef _FILE_H_
 #define _FILE_H_
 
@@ -27,6 +31,7 @@ THE SOFTWARE.
 
 namespace tcpie { namespace wincore {
 
+/// @brief Class which provides basic functionality to deal with files under Windows.
 class __declspec(dllexport) File 
 {
 protected:
@@ -35,11 +40,23 @@ protected:
 	std::wstring* file_name;
 
 public:
+	/// @brief		Constructs a new instance of the File class
+	/// @param		Path		The path to the file (may be either relative or absolute)
 	File(const std::wstring* Path);
+
+	/// @brief		The default destructor
 	~File();
 
+	/// @brief		Gets the full (absolute) file path
+	/// @return		A string containing the full (absolute) file path
 	const std::wstring* GetFullPath() const { return this->full_path; }
+
+	/// @brief		Gets the directory the file is in
+	/// @return		A string containing the directory the file is in
 	const std::wstring* GetDirectory() const { return this->directory; }
+
+	/// @brief		Gets the file's name, including extension
+	/// @return		The file's name, including extension
 	const std::wstring* GetNameWithExtension() const { return this->file_name; }
 };
 
