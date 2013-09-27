@@ -49,6 +49,13 @@ DetourRet __stdcall add_detour(DetourArgs* args)
 	return DETOUR_ARGCHANGED;
 }
 
+float __cdecl multiply(float a, int b)
+{
+	float ret = (float)b * a;
+	float* ret_addr = &ret;
+	return ret;
+}
+
 int _tmain(int argc, _TCHAR* argv[])
 {
 	vector<BYTE>* signature = new std::vector<BYTE>((BYTE*)add, (BYTE*)add_detour);
@@ -69,6 +76,24 @@ int _tmain(int argc, _TCHAR* argv[])
 	hook->Enable();
 	
 	cout << add(2, 5) << endl;								// Output: "9"
+
+	Function mult = Function(multiply,
+									CDECL_CALLCONV,
+									2,
+									DWORD_SIZE);
+
+	vector<void*> args = vector<void*>();
+	float first = 3.0f;
+	args.push_back((void*)5);
+	args.push_back(*(void**)&first);
+	
+
+	DWORD ret = 0;
+	DWORD* ret_addr = &ret;
+	mult.Call(&args,
+			  &ret);
+
+	cout << hex << ret << dec << endl;
 
 	MessageBoxA(NULL, "", "wait", MB_OK);
 

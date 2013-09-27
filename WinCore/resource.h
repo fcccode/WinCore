@@ -2,6 +2,9 @@
 // Microsoft Visual C++ generated include file.
 // Used by fileversion.rc
 
+/// @internal
+/// @file resource.h
+
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED

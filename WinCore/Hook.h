@@ -20,7 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-/// @file		Hook
+/// @file		Hook.h
 /// @author		tcpie
 /// @brief		Contains code relevant to the Hook class.
 

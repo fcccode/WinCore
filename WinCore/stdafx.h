@@ -20,6 +20,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+/// @internal
+/// @stdafx.h
+
 #pragma once
 
 #include "targetver.h"

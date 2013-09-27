@@ -20,7 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-/// @file Thread
+/// @file Thread.h
 /// @author tcpie
 /// @brief Contains code relevant to the Thread class.
 

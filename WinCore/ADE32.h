@@ -1,12 +1,9 @@
-//-----------------------------------------------------------------
-//
-//	File:		ADE32.h
-//	Author:		z0mbie
-//	Version:	2.02c
-//	Date:		unknown
-//
-//
-//-----------------------------------------------------------------
+/// @internal
+/// @file ADE32.h
+/// @author z0mbie
+/// @version 2.02c
+///
+/// This file was written by z0mbie.
 
 #ifndef _ADE32_H_
 #define _ADE32_H_

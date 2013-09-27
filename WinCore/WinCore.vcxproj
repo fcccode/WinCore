@@ -93,7 +93,6 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="Thread.h" />
-    <ClInclude Include="WinCore.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ADE32.cpp" />

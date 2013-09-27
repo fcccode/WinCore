@@ -24,25 +24,25 @@ THE SOFTWARE.
 /// @author		tcpie
 /// @brief      Contains code relevant for the Function class.
 
-/// \namespace	tcpie
-/// @brief		My encapsulating namespace.
-
-/// \namespace	wincore
-/// @brief		Namespace for this project.
-
 #ifndef _FUNCTION_H_
 #define _FUNCTION_H_
 
 #include <vector>
 #include <string>
 
-namespace tcpie { namespace wincore {
+/// @brief		My encapsulating namespace
+namespace tcpie { 
+
+/// @brief		Namespace for the WinCore project
+namespace wincore {
 
 class MemoryRegion;
 class Process;
 class Thread;
 
 /// @brief		Contains the types of sizes a function can return
+///
+/// @public
 enum ReturnType
 {
 	DWORD_SIZE = 0,		///< The function returns a value the size of a DWORD
@@ -52,6 +52,8 @@ enum ReturnType
 };
 
 /// @brief		Contains the available calling conventions
+///
+/// @public
 enum CallingConvention
 {
 	CDECL_CALLCONV = 0,	///< The function uses the cdecl calling convention (push right-to-left, caller cleans up stack)
@@ -208,7 +210,7 @@ public:
 	Function* CreateStdcallWrapper(int NumArgsToClean = -1) const;
 
 	///	@brief		Calls the function
-	///	@param		Args				The arguments to the function
+	///	@param		Args				The arguments to the function. Elements are pushed in the supplied order, the first element is pushed first.
 	/// @param		ReturnValue			A pointer to a DWORD where the function's return value will be stored
 	/// @param		Instance			The instance to use when calling the function
 	/// @return		True on success, false on function call time-out.
@@ -216,10 +218,13 @@ public:
 	///	This method will call the Function. If the function is within the current process,
 	///	the current thread is used. If not, all threads of the target process are gathered
 	///	and tried one-by-one to execute the function. If execution succeeds, Call() returns.
+	///
+	/// !!A warning on return values!! in some cases (eg: float values), the function does not
+	/// return the actual return value, but a pointer to the value.
 	bool Call(const std::vector<void*>* Args, DWORD* ReturnValue = NULL, void* Instance = NULL) const;
 
 	///	@brief		Calls the function
-	///	@param		Args				The arguments to the function
+	///	@param		Args				The arguments to the function. Elements are pushed in the supplied order, the first element is pushed first.
 	/// @param		CallingThread		The thread to use for calling the function.
 	/// @param		ReturnValue			A pointer to a DWORD where the function's return value will be stored
 	/// @param		Instance			The instance to use when calling the function
@@ -227,6 +232,9 @@ public:
 	///
 	///	This method will call the Function. If the specified thread is NULL, the current thread
 	///	will be used. Note that the call may time out if the specified thread is currently sleeping!
+	///
+	/// !!A warning on return values!! in some cases (eg: float values), the function does not
+	/// return the actual return value, but a pointer to the value.
 	bool Call(const std::vector<void*>* Args, const Thread* CallingThread, DWORD* ReturnValue = NULL, void* Instance = NULL) const;
 };
 

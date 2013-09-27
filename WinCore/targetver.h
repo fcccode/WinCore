@@ -20,6 +20,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+/// @internal
+/// @file targetver.h
+
 #pragma once
 
 // Including SDKDDKVer.h defines the highest available Windows platform.

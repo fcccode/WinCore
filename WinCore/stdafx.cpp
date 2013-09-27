@@ -20,6 +20,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+/// @internal
+/// @file stdafx.h
+
 // stdafx.cpp : source file that includes just the standard includes
 // WinCore.pch will be the pre-compiled header
 // stdafx.obj will contain the pre-compiled type information

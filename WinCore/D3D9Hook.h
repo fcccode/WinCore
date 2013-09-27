@@ -20,6 +20,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+/// @file D3D9Hook.h
+/// @author tcpie
+/// @brief Contains code relevant to the D3D9Hook class.
+
 #ifndef _D3D9HOOK_H_
 #define _D3D9HOOK_H_
 
