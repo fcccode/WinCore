@@ -90,16 +90,19 @@ public:
 		this->jump_instruction_length = JumpInstructionLength; 
 	}
 
-	///	@brief		Gets the number of opcodes at the function start
+	///	@brief		Gets the number of opcodes at the function start.
+	/// @return		The number of opcodes at the function start.
 	///
 	///				The number of opcodes represents the number needed to reach the minimum number for a jump (5), while not
 	///				cleaving any existing instructions.
 	int GetNumOpcodes() const { return this->num_opcodes; }
 
-	/// @brief		Gets the address of a jump instruction (if any)
+	/// @brief		Gets the address of a jump instruction (if any).
+	/// @return		The address of a jump instruction (if any).
 	void* GetJumpInstructionAddress() const { return this->jump_instruction_address; }
 
-	/// @brief		Gets the jump instruction size
+	/// @brief		Gets the jump instruction size.
+	/// @return		The jump instruction size (in bytes).
 	int GetJumpInstructionLength() const { return this->jump_instruction_length; }
 };
 
@@ -123,7 +126,7 @@ public:
 	/// @brief		Finds a function using the specified parameters
 	/// @param		Signature			The function's signature
 	/// @param		SignatureMask		The functions's signature mask. Should have the same length as Signature. If any bytes need to be ignored, denote them with '?'
-	/// @param		CallingConv			The function's calling convention
+	/// @param		CallConv			The function's calling convention
 	/// @param		ArgCount			The numer of argument the function has. Use -1 for variable number of arguments.
 	/// @param		RetType				The return type of the function
 	///
@@ -136,7 +139,7 @@ public:
 	/// @param		Signature			The function's signature
 	/// @param		SignatureMask		The functions's signature mask. Should have the same length as Signature. If any bytes need to be ignored, denote them with '?'
 	/// @param		process				The process the function is in
-	/// @param		CallingConv			The function's calling convention
+	/// @param		CallConv			The function's calling convention
 	/// @param		ArgCount			The number of argument the function has. Use -1 for variable number of arguments.
 	/// @param		RetType				The return type of the function
 	///
@@ -168,22 +171,27 @@ public:
 	/// @brief		Default destructor
 	~Function();
 
-	/// @brief		Gets the function's process
+	/// @brief		Gets the function's process.
+	/// @return		The function's process.
 	const Process* GetProcess() const { return this->process; }
 
-	/// @brief		Gets the function's return type
+	/// @brief		Gets the function's return type.
+	/// @return		The function's return type.
 	ReturnType GetReturnType() const { return this->return_type; }
 
-	/// @brief		Gets the function's address
+	/// @brief		Gets the function's address.
+	/// @return		The function's address.
 	void* GetAddress() const { return this->address; }
 
-	/// @brief		Gets the function's argument count
+	/// @brief		Gets the function's argument count.
+	/// @return		The function's argument count.
 	int GetArgCount() const { return this->argcount; }
 
-	/// @brief		Gets the function's calling convention
+	/// @brief		Gets the function's calling convention.
+	/// @return		The function's calling convention.
 	CallingConvention GetCallingConvention() const { return this->calling_convention; }
 
-	/// @brief		Find the patch info for this instance
+	/// @brief		Find the patch info for this instance.
 	/// @return		Returns a pointer to a PatchInfo instance on success. On failure the function returns NULL.
 	///
 	///	As all the other functions that start with Find*, this function can be very slow. Internally
@@ -202,6 +210,7 @@ public:
 	/// @brief		Creates a wrapper for the current function, which can be called as if the function had the stdcall calling convention.
 	/// @param		NumArgsToClean		The number of arguments the wrapper should clean. Set this to -1 so that the wrapper will clean
 	///									the number of arguments the function has.
+	/// @return		A new function that effectively has the stdcall calling convention.
 	///
 	///	This method returns a brand new Function. This new function can be called as if it has the stdcall calling convention.
 	///	thus, if the wrapped function is of the cdecl calling convention, the caller does not have to clean the stack when

@@ -245,6 +245,7 @@ public:
 	/// @brief Registers a detour callback function for this hook.
 	/// @param Callback		The callback function to call when the hooked function is called.
 	/// @param Type			The detour type, indicating if the callback function should be called before or after the call to the unhooked function.
+	/// @return				The registered detour.
 	///
 	/// You should not call the unhooked function yourself in your callback, the hook will take care of this.
 	Detour* RegisterDetour(DetourCallback Callback, DetourType Type);
@@ -252,6 +253,7 @@ public:
 	/// @brief Registers a detour callback class for this hook.
 	/// @param Callback		The callback class to call when the hooked function is called.
 	/// @param Type			The detour type, indicating if the callback class should be called before or after the call to the unhooked function.
+	/// @return				The registered detour.
 	///
 	/// You should not call the unhooked function yourself in your callback, the hook will take care of this.
 	Detour* RegisterDetour(const IDetourClass* Callback, DetourType Type);
@@ -266,6 +268,7 @@ public:
 	/// @param Name					The name to give to the hook.
 	/// @param DefaultReturnValue	The default value to return when the call to the function should be blocked.
 	/// @param DoSafetyChecks		Whether or not the function address should be checked for correctness.
+	/// @return						The created hook.
 	///
 	/// This function creates a hook by analyzing the target function and writing a few trampoline functions to memory. As such, this function
 	/// should be regarded as *slow*!

@@ -122,6 +122,7 @@ public:
 	static const Thread* FindOldest(const std::vector<Thread*>* Threads);
 
 	/// @brief Finds a thread by its ID.
+	/// @param ThreadId		The thread's ID.
 	/// @return The found thread. If no thread was found, NULL will be returned.
 	///
 	/// Note: like all Find* functions, this function should be regarded as slow!
@@ -137,8 +138,11 @@ public:
 	/// @param HostProcess		The process to create the thread in.
 	/// @param StartAddress		The address the thread should start at.
 	/// @param Parameter		The parameter passed to the function the thread starts at.
+	/// @return The created thread.
 	///
 	/// Note: unlike the constructor, this function actually creats a win32 thread!
+	/// Performance note: to get the created Thread, the created win32 is searched, meaning
+	/// that this function is slow.
 	static Thread* Create(const Process* HostProcess, void* StartAddress, void* Parameter);
 };
 

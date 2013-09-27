@@ -138,6 +138,7 @@ public:
 	static Process* GetCurrentProcess();
 
 	/// @brief Finds a process by its ID.
+	/// @param		Id		The process's ID.
 	/// @return The found process. If no process was found, NULL will be returned.
 	///
 	/// Note: like all other Find* functions, this function should be regarded as slow!
