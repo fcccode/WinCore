@@ -10,6 +10,10 @@
 //
 //-----------------------------------------------------------------
 
+/// @internal
+/// @file ADE32.cpp
+// (makes doxygen ignore this file)
+
 #include "stdafx.h"
 #include "ADE32.h"
 

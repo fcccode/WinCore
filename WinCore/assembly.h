@@ -20,6 +20,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+/// @internal
+/// @file assembly.h
+/// @author tcpie
+/// @brief Contains code to make assembly code accesible to C++.
+
 #ifndef _ASSEMBLY_H_
 #define _ASSEMBLY_H_
 

@@ -20,6 +20,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+/// @file dllmain.cpp
+/// @internal
+
 // dllmain.cpp : Defines the entry point for the DLL application.
 #include "stdafx.h"
 

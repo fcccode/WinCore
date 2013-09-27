@@ -28,15 +28,17 @@ THE SOFTWARE.
 
 #include "assembly.h"
 
+#include <algorithm>
+
 #define PTRADD(ptr, diff) (void*)((DWORD)ptr + (DWORD)diff)
 
 namespace tcpie { namespace wincore {
 
-DetourRet Detour::CallDetour(DetourArgs* Arguments)
+DetourRet Detour::CallDetour(DetourArgs* Arguments) const
 {
 	if (this->detour_class != NULL)
 	{
-		return this->detour_class->DetourCallback(Arguments);
+		return const_cast<IDetourClass*>(this->detour_class)->DetourCallback(Arguments);
 	}
 
 	if (this->detour_function != NULL)
@@ -63,7 +65,7 @@ std::map<std::wstring, Hook*>* Hook::hooks = new std::map<std::wstring, Hook*>()
 
 DWORD Hook::detour(void* instance, std::vector<void*>* args)
 {
-	Thread* t = Thread::GetCurrentThread();
+	const Thread* t = Thread::GetCurrentThread();
 
 	DetourRet final_ret = DETOUR_NOCHANGE;
 	DWORD custom_returnvalue = this->default_returnvalue;
@@ -130,7 +132,10 @@ DWORD Hook::detour(void* instance, std::vector<void*>* args)
 
 	if (final_ret != DETOUR_FNBLOCKED)
 	{
-		this->unhooked_function->Call(custom_args, t, &ret, instance);
+		// We must reverse the args
+		std::vector<void*> call_args = std::vector<void*>(custom_args->rbegin(), custom_args->rend());
+
+		this->unhooked_function->Call(&call_args, t, &ret, instance);
 	}
 
 	if ((int)final_ret & (int)DETOUR_RETCHANGED)
@@ -147,7 +152,7 @@ DWORD Hook::detour(void* instance, std::vector<void*>* args)
 
 		DetourArgs* d_args = new DetourArgs(this->post_detours->at(i), instance, temp_args, temp_custom_ret, final_ret);
 
-		DetourRet temp_ret = this->pre_detours->at(i)->CallDetour(d_args);
+		DetourRet temp_ret = this->post_detours->at(i)->CallDetour(d_args);
 
 		if (temp_ret == DETOUR_RETCHANGED || temp_ret == DETOUR_ARGRETCHANGED)
 		{
@@ -158,7 +163,6 @@ DWORD Hook::detour(void* instance, std::vector<void*>* args)
 		delete temp_args;
 	}
 
-	delete t;
 	delete custom_args;
 
 	return ret;
@@ -166,16 +170,6 @@ DWORD Hook::detour(void* instance, std::vector<void*>* args)
 
 DWORD Hook::global_detour(Hook* hook, ...)
 {
-	try
-	{
-		const std::wstring* hook_name = hook->GetName();
-	}
-	catch (...)
-	{
-		// Our hook is deleted! Let's just return...
-		return 0;
-	}
-
 	void* instance = NULL;
 	std::vector<void*> args;
 
@@ -194,7 +188,7 @@ DWORD Hook::global_detour(Hook* hook, ...)
 	return hook->detour(instance, &args);
 }
 
-Hook::Hook(Function* TargetFunction, std::wstring* Name, Function* UnhookedFunction, DWORD DefaultReturnValue, MemoryRegion* OldCode, MemoryRegion* PatchCode)
+Hook::Hook(const Function* TargetFunction, std::wstring* Name, Function* UnhookedFunction, DWORD DefaultReturnValue, MemoryRegion* OldCode, MemoryRegion* PatchCode)
 {
 	this->name = Name;
 	this->function = TargetFunction;
@@ -209,8 +203,13 @@ Hook::Hook(Function* TargetFunction, std::wstring* Name, Function* UnhookedFunct
 
 Hook::~Hook()
 {
+	this->function->GetProcess()->FreeMemory(this->old_code);
+	this->function->GetProcess()->FreeMemory(this->patch_code);
+
 	delete this->pre_detours;
 	delete this->post_detours;
+	delete this->name;
+	delete this->unhooked_function;
 }
 
 void Hook::SetEnabled(bool enabled)
@@ -225,12 +224,12 @@ void Hook::SetEnabled(bool enabled)
 	}
 }
 
-Function* Hook::GetFunction()
+const Function* Hook::GetFunction() const
 {
 	return this->function;
 }
 
-Function* Hook::GetUnhookedFunction()
+const Function* Hook::GetUnhookedFunction() const
 {
 	return this->unhooked_function;
 }
@@ -249,12 +248,12 @@ void Hook::Disable()
 	Process::GetCurrentProcess()->WriteMemory(this->old_code, this->function->GetAddress());
 }
 
-bool Hook::IsEnabled()
+bool Hook::IsEnabled() const
 {
 	return this->enabled;
 }
 
-const std::wstring* Hook::GetName()
+const std::wstring* Hook::GetName() const
 {
 	return this->name;
 }
@@ -282,7 +281,7 @@ Detour* Hook::RegisterDetour(DetourCallback Callback, DetourType Type)
 	}
 }
 
-Detour* Hook::RegisterDetour(IDetourClass* Callback, DetourType Type)
+Detour* Hook::RegisterDetour(const IDetourClass* Callback, DetourType Type)
 {
 	Detour* ret = NULL;
 
@@ -305,14 +304,14 @@ Detour* Hook::RegisterDetour(IDetourClass* Callback, DetourType Type)
 	}
 }
 
-Hook* Hook::GetHookByName(std::wstring* Name)
+Hook* Hook::GetHookByName(const std::wstring* Name)
 {
 	return Hook::hooks->at(*Name);
 }
 
-Hook* Hook::CreateHook(Function* TargetFunction, std::wstring* Name, DWORD DefaultReturnValue, bool DoSafetyChecks)
+Hook* Hook::CreateHook(const Function* TargetFunction, std::wstring* Name, DWORD DefaultReturnValue, bool DoSafetyChecks)
 {
-	PatchInfo* patchinfo = TargetFunction->FindPatchInfo();
+	PatchInfo* patchinfo = const_cast<Function*>(TargetFunction)->FindPatchInfo();
 
 	if (DoSafetyChecks)
 	{

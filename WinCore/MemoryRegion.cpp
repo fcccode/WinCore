@@ -39,7 +39,7 @@ MemoryRegion::MemoryRegion(void* StartAddress, DWORD Size)
 	this->size = Size;
 }
 
-void* MemoryRegion::ReplaceFirstOccurence(DWORD Occurence, DWORD Replacement)
+void* MemoryRegion::ReplaceFirstOccurence(DWORD Occurence, DWORD Replacement) const
 {
 	for (BYTE* i = (BYTE*)this->GetStartAddress(); i < (BYTE*)this->GetEndAddress(); i++)
 	{
@@ -56,12 +56,43 @@ void* MemoryRegion::ReplaceFirstOccurence(DWORD Occurence, DWORD Replacement)
 	return NULL;
 }
 
-bool MemoryRegion::ContainsAddress(void* Address)
+void* MemoryRegion::FindAddress(const std::vector<BYTE>* Signature, const std::vector<char>* SignatureMask, size_t StepSize) const
+{
+	if (Signature == NULL || SignatureMask == NULL)
+	{
+		return NULL;
+	}
+
+	unsigned int counter = 0;
+	void* start = this->GetStartAddress();
+
+	for (BYTE* i = (BYTE*)this->GetStartAddress(); i <= (BYTE*)this->GetEndAddress(); i += StepSize)
+	{
+		if (*i == (BYTE)Signature->at(counter) || SignatureMask->at(counter) == '?')
+		{
+			counter++;
+		}
+		else if (*i != (BYTE)Signature->at(counter))
+		{
+			counter = 0;
+			start = i + StepSize;
+		}
+
+		if (counter >= Signature->size() - 1)
+		{
+			return (void*)start;
+		}
+	}
+
+	return NULL;
+}
+
+bool MemoryRegion::ContainsAddress(void* Address) const
 {
 	return (Address >= this->start_address && Address <= this->end_address);
 }
 
-bool MemoryRegion::OverlapsWith(MemoryRegion* Region)
+bool MemoryRegion::OverlapsWith(const MemoryRegion* Region) const
 {
 	return (this->ContainsAddress(Region->GetStartAddress()) || this->ContainsAddress(Region->GetEndAddress()));
 }

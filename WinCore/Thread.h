@@ -20,16 +20,22 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+/// @file Thread.h
+/// @author tcpie
+/// @brief Contains code relevant to the Thread class.
+
 #ifndef _THREAD_H_
 #define _THREAD_H_
 
 #include <vector>
+#include <map>
 #include <TlHelp32.h>
 
 namespace tcpie { namespace wincore {
 
 class Process;
 
+/// @brief Describes a Windows thread.
 class __declspec(dllexport) Thread
 {
 private:
@@ -41,29 +47,103 @@ private:
 	Process* owner;
 	DWORD owner_id;
 
+	static std::map<DWORD, Thread*>* thread_pool;
+
 public:
+	/// @brief Constructs a new Thread
+	/// @param ThreadInfo		The thread's info.
 	Thread(THREADENTRY32 ThreadInfo);
+
+	/// @brief Destructs a Thread.
+	///
+	/// Note: this destructs only this instance. The underlying win32 thread is unchanged.
 	~Thread();
 
-	DWORD GetId() { return this->id; }
+	/// @brief Gets the thread id.
+	/// @return The thread id.
+	DWORD GetId() const { return this->id; }
 
+	/// @brief Gets the thread's starting address.
+	/// @return The thread's starting address.
+	///
+	/// Note: The first call to this function may be slow.
 	void* GetStartAddress();
 	
-	void PushToStack(std::vector<void*>* Args);
+	/// @brief Pushes the specified arguments to the thread's stack.
+	/// @param Args			The arguments to push.
+	///
+	/// Note: you need to suspend the thread before calling this function! 
+	void PushToStack(const std::vector<void*>* Args);
 
-	void Suspend();
-	void Resume();
-	CONTEXT GetContext();
-	bool SetContext(CONTEXT value);
+	/// @brief Suspends the thread.
+	void Suspend() const;
 
-	Process* GetOwningProcess();
+	/// @brief Resumes the thread.
+	///
+	/// Note: if the thread was previously suspended for more than 1 time, the thread may still be suspended.
+	void Resume() const;
 
+	/// @brief Gets the thread's context.
+	/// @return The thread's context.
+	///
+	/// Note: the returned value only makes sense if the thread is suspended during the call to GetContext.
+	CONTEXT GetContext() const;
+
+	/// @brief Sets the thread's context.
+	/// @param value		The new context.
+	/// @return				A value indicating whether the function succeeded.
+	///
+	/// Note: you should suspend the thread before calling this function!
+	bool SetContext(CONTEXT value) const;
+
+	/// @brief Checks if the thread has terminated.
+	/// @return				A value indicating whether the thread has terminated.
+	bool HasTerminated() const;
+
+	/// @brief Gets the owning process.
+	/// @return The process this thread belongs to.
+	const Process* GetOwningProcess();
+
+	/// @brief Gets the ID of the current thread.
+	/// @return The ID of the current thread.
 	static DWORD GetCurrentThreadId();
-	static Thread* GetCurrentThread();
-	static Thread* FindOldest(std::vector<Thread*>* Threads);
-	static Thread* FindThreadById(DWORD ThreadId);
+
+	/// @brief Gets the current thread.
+	/// @return The current thread.
+	///
+	/// Note: This function may occasionally be slow. Try to store the current thread in a variable instead of calling this function often.
+	static const Thread* GetCurrentThread();
+
+	/// @brief Finds the oldest thread from a collection of threads.
+	/// @param Threads			A vector containing the threads to search in.
+	/// @return The oldest thread
+	///
+	/// Note: like all Find* functions, this function should be regarded as slow!
+	static const Thread* FindOldest(const std::vector<Thread*>* Threads);
+
+	/// @brief Finds a thread by its ID.
+	/// @param ThreadId		The thread's ID.
+	/// @return The found thread. If no thread was found, NULL will be returned.
+	///
+	/// Note: like all Find* functions, this function should be regarded as slow!
+	static const Thread* FindThreadById(DWORD ThreadId);
+
+	/// @brief Gets the threads currently active in the system.
+	/// @return				A vector containing the threads currently active in the system.
+	///
+	/// Note: This function should be regarded as slow!
 	static std::vector<Thread*>* GetSystemThreads();
-	static Thread* Create(Process* HostProcess, void* StartAddress, void* Parameter);
+
+	/// @brief Creates a thread.
+	/// @param HostProcess		The process to create the thread in.
+	/// @param StartAddress		The address the thread should start at.
+	/// @param Parameter		The parameter passed to the function the thread starts at.
+	/// @return The created thread.
+	///
+	/// Note: unlike the constructor, this function actually creats a win32 thread!
+	/// Performance note: to get the created Thread, the created win32 is searched, meaning
+	/// that this function is slow.
+	static Thread* Create(const Process* HostProcess, void* StartAddress, void* Parameter);
 };
 
 } }

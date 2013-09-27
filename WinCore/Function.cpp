@@ -22,11 +22,11 @@ THE SOFTWARE.
 
 #include "stdafx.h"
 #include "Function.h"
-#include "MemSearchable.h"
 #include "Thread.h"
 #include "Process.h"
 #include "assembly.h"
 #include "MemoryRegion.h"
+#include "Module.h"
 
 #include "ADE32.h"
 
@@ -41,7 +41,7 @@ Function::Function(Function& other)
 	this->argcount = other.GetArgCount();
 	this->return_type = other.GetReturnType();
 	this->calling_convention = other.GetCallingConvention();
-	this->patchinfo = other.patchinfo;
+	this->patchinfo = new PatchInfo(*other.patchinfo);
 }
 
 Function::Function(void* Address, CallingConvention CallConv, int ArgCount, ReturnType RetType)
@@ -54,7 +54,7 @@ Function::Function(void* Address, CallingConvention CallConv, int ArgCount, Retu
 	this->patchinfo = NULL;
 }
 
-Function::Function(Process* process, void* Address, CallingConvention CallConv, int ArgCount, ReturnType RetType)
+Function::Function(const Process* process, void* Address, CallingConvention CallConv, int ArgCount, ReturnType RetType)
 {
 	this->process = process;
 	this->address = Address;
@@ -62,6 +62,50 @@ Function::Function(Process* process, void* Address, CallingConvention CallConv, 
 	this->return_type = RetType;
 	this->calling_convention = CallConv;
 	this->patchinfo = NULL;
+}
+
+Function* Function::FindFunction(const std::vector<BYTE>* Signature, const std::vector<char>* SignatureMask, CallingConvention CallConv, int ArgCount, ReturnType RetType)
+{
+	return Function::FindFunction(Signature, SignatureMask, Process::GetCurrentProcess(), CallConv, ArgCount, RetType);
+}
+
+Function* Function::FindFunction(const std::vector<BYTE>* Signature, const std::vector<char>* SignatureMask, const Process* process, CallingConvention CallConv, int ArgCount, ReturnType RetType)
+{
+	const Module* module = process->GetMainModule();
+
+	void* address = module->GetMemoryRegion()->FindAddress(Signature, SignatureMask);
+
+	if (address == NULL)
+	{
+		// look in other modules
+		std::vector<Module*>* mods = process->FindModules();
+
+		for (size_t i = 0; i < mods->size(); i++)
+		{
+			if (mods->at(i)->GetId() == module->GetId())
+			{
+				continue;
+			}
+
+			address = mods->at(i)->GetMemoryRegion()->FindAddress(Signature, SignatureMask);
+
+			if (address != NULL)
+			{
+				break;
+			}
+		}
+
+		delete mods;
+
+		if (address == NULL)
+		{
+			return NULL;
+		}
+	}
+
+	delete module;
+
+	return new Function(process, address, CallConv, ArgCount, RetType);
 }
 
 Function::~Function()
@@ -157,7 +201,7 @@ PatchInfo* Function::FindPatchInfo()
 	return info;
 }
 
-bool Function::callInDifferentThread(Thread* CallingThread, std::vector<void*>* Args, void* instance, bool cleanup, DWORD* return_value)
+bool Function::callInDifferentThread(const Thread* CallingThread, const std::vector<void*>* Args, void* instance, bool cleanup, DWORD* return_value) const
 {
 	CallingThread->Suspend();
 
@@ -177,7 +221,7 @@ bool Function::callInDifferentThread(Thread* CallingThread, std::vector<void*>* 
 	args->push_back((DWORD*)&ret_val);
 	args->push_back((DWORD*)old_eip);	
 
-	CallingThread->PushToStack(args);
+	const_cast<Thread*>(CallingThread)->PushToStack(args);
 
 	context = CallingThread->GetContext();
 	context.Eip = (DWORD)asm_call_fn;
@@ -203,7 +247,6 @@ bool Function::callInDifferentThread(Thread* CallingThread, std::vector<void*>* 
 		Sleep(1);
 	}
 	
-	std::cout << "fn call failed." << std::endl;
 
 	// Failure. Set ESP back:
 	CallingThread->Suspend();
@@ -213,7 +256,6 @@ bool Function::callInDifferentThread(Thread* CallingThread, std::vector<void*>* 
 	if (context.Esp == esp_after)
 	{
 		context.Esp += (args->size() + 1) * sizeof(DWORD*);
-		std::cout << "Resetting ESP" << std::endl;
 	}
 
 	CallingThread->SetContext(context);
@@ -227,17 +269,15 @@ bool Function::callInDifferentThread(Thread* CallingThread, std::vector<void*>* 
 	return false;
 }
 
-bool Function::callInDifferentProcess(Process* TargetProcess, Thread* CallingThread, std::vector<void*>* Args, void* instance, bool cleanup, void* asm_fn, DWORD* return_value)
+bool Function::callInDifferentProcess(const Process* TargetProcess, const Thread* CallingThread, const std::vector<void*>* Args, void* instance, bool cleanup, void* asm_fn, DWORD* return_value) const
 {
-	std::cout << "addr of remote asm fn: 0x" << std::hex << (DWORD)asm_fn << std::dec << " calling thread id: " << std::hex << CallingThread->GetId() << std::dec << std::endl;
-
 	CallingThread->Suspend();
 
 	CONTEXT context = CallingThread->GetContext();
 	DWORD old_eip = context.Eip;
 	DWORD ret_val = FN_MAGIC_NUMBER;
 
-	MemoryRegion* remote_args = TargetProcess->WriteMemory(&(*Args)[0], Args->size() * sizeof(DWORD*));
+	MemoryRegion* remote_args = TargetProcess->WriteMemory((void*)&(*Args)[0], Args->size() * sizeof(DWORD*));
 	MemoryRegion* remote_retval = TargetProcess->WriteMemory(&ret_val, sizeof(DWORD));
 
 	std::vector<void*>* args = new std::vector<void*>();
@@ -250,7 +290,7 @@ bool Function::callInDifferentProcess(Process* TargetProcess, Thread* CallingThr
 	args->push_back((DWORD*)remote_retval->GetStartAddress());
 	args->push_back((DWORD*)old_eip);	
 
-	CallingThread->PushToStack(args);
+	const_cast<Thread*>(CallingThread)->PushToStack(args);
 
 	context = CallingThread->GetContext();
 	context.Eip = (DWORD)asm_fn;
@@ -281,13 +321,8 @@ bool Function::callInDifferentProcess(Process* TargetProcess, Thread* CallingThr
 		context = CallingThread->GetContext();
 		CallingThread->Resume();
 
-		std::cout << "eip: 0x" << std::hex << context.Eip << std::dec << std::endl;
 		Sleep(15);
 	}	
-	
-	std::cout << "fn call timed out." << std::endl;
-	
-	MessageBoxA(NULL, "stop", "", MB_OK);
 
 	// Failure. Set ESP back:
 	CallingThread->Suspend();
@@ -297,7 +332,6 @@ bool Function::callInDifferentProcess(Process* TargetProcess, Thread* CallingThr
 	if (context.Esp == esp_after)
 	{
 		context.Esp += (args->size() + 1) * sizeof(DWORD*);
-		std::cout << "Resetting ESP" << std::endl;
 	}
 
 	CallingThread->SetContext(context);
@@ -311,7 +345,7 @@ bool Function::callInDifferentProcess(Process* TargetProcess, Thread* CallingThr
 	return false;
 }
 
-MemoryRegion* Function::CreateFunctionStackCleaner(size_t NumArgsToClean)
+MemoryRegion* Function::CreateFunctionStackCleaner(size_t NumArgsToClean) const
 {
 	DWORD wildcard = 0x1337;
 
@@ -346,7 +380,7 @@ MemoryRegion* Function::CreateFunctionStackCleaner(size_t NumArgsToClean)
 	return NULL;
 }
 
-Function* Function::SetFirstReturnAddress(void* Address)
+Function* Function::CreateWrapperWithForcedReturnAddress(void* Address) const
 {
 	MemoryRegion* region = Process::GetCurrentProcess()->WriteMemory(ASM(change_ret_addr), ASM_SIZE(change_ret_addr));
 
@@ -369,11 +403,11 @@ Function* Function::SetFirstReturnAddress(void* Address)
 	return new Function(start_addr, this->calling_convention, this->argcount, this->return_type);
 }
 
-Function* Function::CreateStdcallWrapper(int NumArgsToClean)
+Function* Function::CreateStdcallWrapper(int NumArgsToClean) const
 {
 	if (this->calling_convention == STDCALL_CALLCONV || (this->calling_convention == CDECL_CALLCONV && this->argcount == 0))
 	{
-		return this;
+		return const_cast<Function*>(this);
 	}
 
 	if (this->calling_convention == CDECL_CALLCONV)
@@ -390,7 +424,7 @@ Function* Function::CreateStdcallWrapper(int NumArgsToClean)
 			return NULL;
 		}
 
-		Function* ret = this->SetFirstReturnAddress(region->GetStartAddress());
+		Function* ret = this->CreateWrapperWithForcedReturnAddress(region->GetStartAddress());
 		ret->calling_convention = STDCALL_CALLCONV;
 
 		delete region;
@@ -414,14 +448,14 @@ Function* Function::CreateStdcallWrapper(int NumArgsToClean)
 	return NULL;
 }
 
-bool Function::Call(std::vector<void*>* Args, DWORD* ReturnValue /* = NULL */, void* Instance /* = NULL */)
+bool Function::Call(const std::vector<void*>* Args, DWORD* ReturnValue /* = NULL */, void* Instance /* = NULL */) const
 {
 	if (this->process->GetId() == Process::GetCurrentProcessId())
 	{
-		return this->Call(Args, Thread::GetCurrentThread(), ReturnValue, Instance);
+		return this->Call(Args, NULL, ReturnValue, Instance);
 	}
 
-	std::vector<Thread*>* threads = this->process->GetThreads();
+	std::vector<Thread*>* threads = this->process->FindThreads();
 	bool success = false;
 
 	for (size_t i = 0; i < threads->size(); i++)
@@ -446,7 +480,7 @@ bool Function::Call(std::vector<void*>* Args, DWORD* ReturnValue /* = NULL */, v
 	return success;
 }
 
-bool Function::Call(std::vector<void*>* Args, Thread* CallingThread, DWORD* ReturnValue, void* Instance)
+bool Function::Call(const std::vector<void*>* Args, const Thread* CallingThread, DWORD* ReturnValue, void* Instance) const
 {
 	switch (this->calling_convention)
 	{
@@ -454,7 +488,7 @@ bool Function::Call(std::vector<void*>* Args, Thread* CallingThread, DWORD* Retu
 
 		if (this->process->GetId() == Process::GetCurrentProcessId())
 		{
-			if (CallingThread->GetId() == Thread::GetCurrentThreadId())
+			if (CallingThread == NULL || CallingThread->GetId() == Thread::GetCurrentThreadId())
 			{
 				*ReturnValue = asm_call_fn(this->address, Args->size(), (DWORD*)&(*Args)[0], NULL, false);
 
@@ -480,7 +514,7 @@ bool Function::Call(std::vector<void*>* Args, Thread* CallingThread, DWORD* Retu
 
 		if (this->process->GetId() == Process::GetCurrentProcessId())
 		{
-			if (CallingThread->GetId() == Thread::GetCurrentThreadId())
+			if (CallingThread == NULL || CallingThread->GetId() == Thread::GetCurrentThreadId())
 			{
 				*ReturnValue = asm_call_fn(this->address, Args->size(), (DWORD*)&(*Args)[0], NULL, true);
 
@@ -506,7 +540,7 @@ bool Function::Call(std::vector<void*>* Args, Thread* CallingThread, DWORD* Retu
 
 		if (this->process->GetId() == Process::GetCurrentProcessId())
 		{
-			if (CallingThread->GetId() == Thread::GetCurrentThreadId())
+			if (CallingThread == NULL || CallingThread->GetId() == Thread::GetCurrentThreadId())
 			{
 				*ReturnValue = asm_call_fn(this->address, Args->size(), (DWORD*)&(*Args)[0], Instance, false);
 

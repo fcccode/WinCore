@@ -24,15 +24,6 @@
     <ClInclude Include="targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="memhelp.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="WinCore.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="processhelp.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Process.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -51,9 +42,6 @@
     <ClInclude Include="Function.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MemSearchable.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="assembly.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -61,6 +49,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ADE32.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D3D9Hook.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -72,12 +66,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="dllmain.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="memhelp.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="processhelp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Process.cpp">
@@ -95,9 +83,6 @@
     <ClCompile Include="File.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MemSearchable.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Function.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -107,10 +92,18 @@
     <ClCompile Include="ADE32.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="D3D9Hook.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="assembly.asm">
       <Filter>Assembly</Filter>
     </MASM>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="fileversion.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>
