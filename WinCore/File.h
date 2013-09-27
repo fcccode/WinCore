@@ -35,8 +35,13 @@ namespace tcpie { namespace wincore {
 class __declspec(dllexport) File 
 {
 protected:
+	/// @brief The full (absolute) path to the file.
 	std::wstring* full_path;
+
+	/// @brief The file's directory.
 	std::wstring* directory;
+
+	/// @brief The file name.
 	std::wstring* file_name;
 
 public:

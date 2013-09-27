@@ -81,7 +81,7 @@ public:
 	void* FindAddress(const std::vector<BYTE>* Signature, const std::vector<char>* SignatureMask, size_t StepSize = 1) const;
 
 	/// @brief Checks if the provided address lies within its borders.
-	/// @param Addrss			The address to check.
+	/// @param Address			The address to check.
 	/// @return					A value indicating whether or not the provided Address is within this memory region. (inclusive)
 	bool ContainsAddress(void* Address) const;
 

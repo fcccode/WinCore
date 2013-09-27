@@ -36,7 +36,16 @@ namespace tcpie { namespace wincore {
 
 class D3D9Hook;
 
-/// \class ID3D9CallbackClass
+/// @class IDirect3DDevice9
+/// @brief The Direct 3D 9 device.
+///
+/// For documentation, consult the DirectX SDK.
+
+/// @struct D3DPRESENT_PARAMETERS
+/// @brief The D3D present parameters.
+///
+/// For documentation, consult the DirectX SDK.
+
 /// @brief Base class to inherit from when registering for D3D9 callbacks
 ///
 /// This class's methods will be called when the right D3D9 functions are called.
@@ -51,41 +60,41 @@ private:
 public:
 	ID3D9CallbackClass() { this->is_registered = false; }
 
-	/// \fn		IsRegistered
 	/// @brief	Gets if the class instance is a registered detour.
 	/// @return Whether or not the instance is a registered detour.
 	bool IsRegistered() { return this->is_registered; }
 
-	/// \fn		OnDeviceReset
 	/// @brief	This function is called when Reset() is called on the D3D9 device.
+	/// @param	pDevice						A pointer to the D3D9 device.
+	/// @param	pD3DPRESENT_PARAMETERS		The D3D present parameters.
 	///
 	/// Executed once during service start up, and for every time the device is reset
 	/// Create resources that will live through a reset here (i.e. D3DPOOL_DEFAULT)
 	virtual void OnDeviceReset(IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* pD3DPRESENT_PARAMETERS) = 0;
 
-	/// \fn		OnDeviceLost
 	/// @brief	This function is called when the D3D device is lost.
+	/// @param	pDevice						A pointer to the D3D9 device.
 	///
 	/// Executed once during service shut down, and for every time the device is lost
 	/// Release/delete you created in OnResetDevice here
 	virtual void OnDeviceLost(IDirect3DDevice9* pDevice) = 0;
 
-	/// \fn		OnDeviceReleased
 	/// @brief	This function is called when the D3D device is released.
+	/// @param	pDevice						A pointer to the D3D9 device.
 	///
 	/// Executed once during service shut down
 	/// Release/delete you created in OnCreateDevice here
 	virtual void OnDeviceReleased(IDirect3DDevice9* pDevice) = 0;
 
-	/// \fn		OnEndScene
 	/// @brief	This function is called when EndScene() is called.
+	/// @param	pDevice						A pointer to the D3D9 device.
 	///
 	/// Executed for every frame that is rendered. If you would like to render graphics,
 	/// do it in this function.
 	virtual void OnEndScene(IDirect3DDevice9* pDevice) = 0;
 };
 
-/// \class D3D9Hook
+/// @class D3D9Hook
 /// @brief Class which handles the hooking of D3D9
 class __declspec(dllexport) D3D9Hook
 {
