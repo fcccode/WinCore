@@ -311,14 +311,11 @@ Hook* Hook::GetHookByName(const std::wstring* Name)
 
 Hook* Hook::CreateHook(const Function* TargetFunction, std::wstring* Name, DWORD DefaultReturnValue, bool DoSafetyChecks)
 {
-	MessageBoxA(NULL, "Creating hook...", "Attention:", MB_OK);
-
 	PatchInfo* patchinfo = const_cast<Function*>(TargetFunction)->FindPatchInfo();
 
 	if (DoSafetyChecks)
 	{
-		if ((*(BYTE*)((DWORD)TargetFunction->GetAddress() - 1) != 0x90 && *(BYTE*)((DWORD)TargetFunction->GetAddress() - 1) != 0xCC) ||
-			(DWORD)TargetFunction->GetAddress() % 4 != 0)
+		if (*(BYTE*)((DWORD)TargetFunction->GetAddress() - 1) != 0x90 && *(BYTE*)((DWORD)TargetFunction->GetAddress() - 1) != 0xCC)
 		{
 			// Input is most likely faulty, we are probably not at a real functions start address, but somewhere *inside* a function!!
 			return NULL;
