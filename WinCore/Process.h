@@ -27,6 +27,7 @@ THE SOFTWARE.
 #ifndef _PROCESS_H_
 #define _PROCESS_H_
 
+#include <windef.h>
 #include <vector>
 #include <string>
 #include <iostream>

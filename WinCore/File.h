@@ -27,6 +27,7 @@ THE SOFTWARE.
 #ifndef _FILE_H_
 #define _FILE_H_
 
+#include <windef.h>
 #include <string>
 
 namespace tcpie { namespace wincore {

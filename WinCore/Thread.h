@@ -27,6 +27,7 @@ THE SOFTWARE.
 #ifndef _THREAD_H_
 #define _THREAD_H_
 
+#include <windef.h>
 #include <vector>
 #include <map>
 #include <TlHelp32.h>

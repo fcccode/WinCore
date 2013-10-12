@@ -29,6 +29,8 @@ THE SOFTWARE.
 
 #include <string>
 #include <vector>
+#include <TlHelp32.h>
+#include <windef.h>
 
 namespace tcpie { namespace wincore {
 

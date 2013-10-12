@@ -27,6 +27,7 @@ THE SOFTWARE.
 #ifndef _MEMORYREGION_H_
 #define _MEMORYREGION_H_
 
+#include <windef.h>
 #include <vector>
 
 namespace tcpie { namespace wincore {

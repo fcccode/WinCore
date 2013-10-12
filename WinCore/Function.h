@@ -27,6 +27,7 @@ THE SOFTWARE.
 #ifndef _FUNCTION_H_
 #define _FUNCTION_H_
 
+#include <windef.h>
 #include <vector>
 #include <string>
 
