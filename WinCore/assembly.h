@@ -28,6 +28,8 @@ THE SOFTWARE.
 #ifndef _ASSEMBLY_H_
 #define _ASSEMBLY_H_
 
+#include <windef.h>
+
 #define ASMSTUB extern "C" void __cdecl
 
 #define ASM(x)			asm_## x

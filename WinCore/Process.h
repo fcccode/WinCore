@@ -27,9 +27,11 @@ THE SOFTWARE.
 #ifndef _PROCESS_H_
 #define _PROCESS_H_
 
+#include <windef.h>
 #include <vector>
 #include <string>
 #include <iostream>
+#include <TlHelp32.h>
 
 namespace tcpie { namespace wincore {
 
@@ -66,6 +68,10 @@ public:
 	/// @brief Gets the process name.
 	/// @return The process name.
 	const std::wstring* GetName() const;
+
+	/// @brief Gets the process's base address.
+	/// @return The process's base address
+	void* GetBaseAddress() const;
 
 	/// @brief Gets the process's main module.
 	/// @return The process's main module (often "process.exe")

@@ -27,6 +27,7 @@ THE SOFTWARE.
 #ifndef _THREAD_H_
 #define _THREAD_H_
 
+#include <windef.h>
 #include <vector>
 #include <map>
 #include <TlHelp32.h>
@@ -34,6 +35,49 @@ THE SOFTWARE.
 namespace tcpie { namespace wincore {
 
 class Process;
+
+struct __declspec(dllexport) ThreadInformationBlock
+{
+public:
+	void* SEHFrame;
+	void* StackTop;
+	void* StackBottom;
+	DWORD unknown1;
+	DWORD FiberData;
+	DWORD DataSlot1;
+	void* TIBAddress;
+	void* EnvPointer;
+	DWORD PID_or_DebugContext;
+	DWORD CurrentTID;
+	void* ActiveRPCHandle;
+	void* ThreadLocalStorage;
+	void* ProcessEnvBlock;
+	DWORD LastError;
+	DWORD NumOwnedCritSections;
+	void* CSRClientThreadAddress;
+	void* Win32ThreadInformation;
+	DWORD Win32ClientInfo;
+	void* Wow64FastSysCall;
+	DWORD CurrLocale;
+	DWORD FPSoftStatusRegister;
+	DWORD Reserved;
+	DWORD ExceptionCode;
+	void* ActivationContextStack;
+	DWORD SpareBytes;
+	DWORD Reserved2;
+	DWORD GdiTEBBatch;
+	DWORD GdiRegion;
+	DWORD GdiPen;
+	DWORD GdiBrush;
+	DWORD RealPID;
+	DWORD RealTID;
+	void* GdiCachedProcessHandle;
+	DWORD GdiPID;
+	DWORD GdiTID;
+	void* GdiThreadLocaleInfo;
+	DWORD Reserved3;
+
+};
 
 /// @brief Describes a Windows thread.
 class __declspec(dllexport) Thread

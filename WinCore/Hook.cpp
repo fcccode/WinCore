@@ -315,9 +315,7 @@ Hook* Hook::CreateHook(const Function* TargetFunction, std::wstring* Name, DWORD
 
 	if (DoSafetyChecks)
 	{
-		if (*(BYTE*)((DWORD)TargetFunction->GetAddress() - 1) != 0x90 && 
-			*(BYTE*)((DWORD)TargetFunction->GetAddress() - 1) != 0xCC &&
-			(DWORD)TargetFunction->GetAddress() % 4 != 0)
+		if (*(BYTE*)((DWORD)TargetFunction->GetAddress() - 1) != 0x90 && *(BYTE*)((DWORD)TargetFunction->GetAddress() - 1) != 0xCC)
 		{
 			// Input is most likely faulty, we are probably not at a real functions start address, but somewhere *inside* a function!!
 			return NULL;

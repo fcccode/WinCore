@@ -29,6 +29,7 @@ THE SOFTWARE.
 
 #include "Hook.h"
 
+#include <windef.h>
 #include <vector>
 #include <d3d9.h>
 

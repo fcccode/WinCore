@@ -27,6 +27,7 @@ THE SOFTWARE.
 #ifndef _HOOK_H_
 #define _HOOK_H_
 
+#include <windef.h>
 #include <string>
 #include <vector>
 #include <map>
