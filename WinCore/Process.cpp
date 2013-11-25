@@ -75,6 +75,11 @@ Process::~Process()
 	delete this->module_cache;
 }
 
+void* Process::GetBaseAddress() const
+{ 
+	return this->main_module->GetMemoryRegion()->GetStartAddress();
+}
+
 DWORD Process::GetId() const { return this->id; }
 
 const std::wstring* Process::GetName() const { return this->name; }
