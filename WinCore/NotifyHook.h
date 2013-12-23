@@ -80,7 +80,7 @@ private:
 		this->detour_function = NULL;
 	}
 
-	void CallDetour(void* FunctionAddress) const;
+	void CallDetour(const void* FunctionAddress) const;
 
 public:
 	/// @brief Default destructor.
@@ -120,8 +120,8 @@ private:
 	NotifyHook(const void* TargetFunction, std::wstring* Name, void* UnhookedFunction, MemoryRegion* OldCode, MemoryRegion* PatchCode);
 	~NotifyHook();
 
-	DWORD detour(void* instance, std::vector<void*>* args);
-	static void __cdecl global_detour(NotifyHook* hook);
+	DWORD detour();
+	static void __stdcall global_detour(NotifyHook* hook);
 
 public:	
 	/// @brief Changes the enabled state of the hook.
@@ -188,7 +188,7 @@ public:
 	///
 	/// The safety checks performed by the function are pretty basic, and consist of a simple check, to see if the address of the TargetFunction
 	/// appears correct. This is done by checking if the start address does not seem to fall within a function.
-	static NotifyHook* CreateHook(const void* TargetFunctionAddress, std::wstring* Name, bool DoSafetyChecks = true);
+	static NotifyHook* CreateHook(void* TargetFunctionAddress, std::wstring* Name, bool DoSafetyChecks = true);
 };
 
 } }
