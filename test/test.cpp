@@ -27,12 +27,13 @@ THE SOFTWARE.
 #include "..\WinCore\Process.h"
 #include "..\WinCore\MemoryRegion.h"
 #include "..\WinCore\Hook.h"
+#include "..\WinCore\NotifyHook.h"
 
 #include <vector>
 #include <iostream>
 #include <string>
 
-#pragma comment(lib, "..\\Debug\\WinCore.lib")
+#pragma comment(lib, "..\\Release\\WinCore.lib")
 
 using namespace tcpie::wincore;
 using namespace std;
@@ -54,6 +55,18 @@ float __cdecl multiply(float a, int b)
 	float ret = (float)b * a;
 	float* ret_addr = &ret;
 	return ret;
+}
+
+__declspec(noinline) int printLOL(int val)
+{
+	cout << "LOL " << val << endl;
+
+	return val - 2;
+}
+
+void __stdcall notify_callback(void* fn_addr)
+{
+	cout << hex << "Notified of call of fn @0x" << fn_addr << dec << endl;
 }
 
 int _tmain(int argc, _TCHAR* argv[])
@@ -94,6 +107,13 @@ int _tmain(int argc, _TCHAR* argv[])
 			  &ret);
 
 	cout << hex << ret << dec << endl;
+
+	NotifyHook* n_hook = NotifyHook::CreateHook(&printLOL, new wstring(L"printLOL"));
+	n_hook->Enable();
+
+	ret = printLOL(10);
+
+	cout << ret << endl;
 
 	MessageBoxA(NULL, "", "wait", MB_OK);
 

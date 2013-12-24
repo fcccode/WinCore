@@ -31,6 +31,8 @@ THE SOFTWARE.
 
 #include <algorithm>
 
+#include <iostream>
+
 #define PTRADD(ptr, diff) (void*)((DWORD)ptr + (DWORD)diff)
 
 namespace tcpie { namespace wincore {
@@ -283,6 +285,8 @@ namespace tcpie { namespace wincore {
 
 			//-- Now we setup the patch	
 		DWORD patch_jmp_offset = jmp_offs_notify(TargetFunctionAddress, pre_code_region->GetStartAddress(), ASM_SIZE(jmp_far));
+
+		std::cout << "pre_code_ addr: 0x" << std::hex << pre_code_region->GetStartAddress() << std::dec << " jmp offset: 0x" << std::hex << patch_jmp_offset << std::dec << std::endl;
 
 		// First occurence == jmp offset to pre code
 		patch->ReplaceFirstOccurence(wildcard, patch_jmp_offset);		
