@@ -155,15 +155,36 @@ MemoryRegion* Process::WriteMemory(const MemoryRegion* MemoryToWrite, void* Dest
 MemoryRegion* Process::WriteMemory(void* Start, DWORD Size, void* Destination /* = NULL */) const
 {
 	void* address = Destination;
+	DWORD old_protect = 0;
+	bool retval               = false;
 
 	if (Destination == NULL)
 	{
-		address			  = VirtualAllocEx(this->handle, Destination, Size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+		address			  = VirtualAllocEx(this->handle, NULL, Size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+	}
+	else
+	{
+		retval = VirtualProtectEx(this->handle, address, Size, PAGE_EXECUTE_READWRITE, &old_protect) != 0;
+
+		if (!retval)
+		{
+			return NULL;
+		}
 	}
 
-	SIZE_T num_written = 0;
-	
-	bool retval               = WriteProcessMemory(this->handle, address, Start, Size, &num_written) != 0;
+	SIZE_T num_written = 0;	
+
+	retval = ::WriteProcessMemory(this->handle, address, Start, Size, &num_written) != 0;
+
+	if (!retval)
+	{
+		return NULL;
+	}
+
+	if (old_protect != 0)
+	{
+		VirtualProtectEx(this->handle, address, Size, old_protect, &old_protect);
+	}
 
 	return new MemoryRegion(address, (DWORD)num_written);
 }

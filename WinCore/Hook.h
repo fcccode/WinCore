@@ -96,9 +96,11 @@ private:
 	DetourCallback detour_function;
 	const IDetourClass* detour_class;
 	DetourType detour_type;
+	bool enabled;
 
 	Detour(const Hook* FnHook, DetourCallback DetourFunction, DetourType Type)
 	{
+		this->enabled = true;
 		this->hook = FnHook;
 		this->detour_function = DetourFunction;
 		this->detour_class = NULL;
@@ -107,6 +109,7 @@ private:
 
 	Detour(const Hook* FnHook, const IDetourClass* DetourClass, DetourType Type)
 	{
+		this->enabled = true;
 		this->hook = FnHook;
 		this->detour_class = DetourClass;
 		this->detour_function = NULL;
@@ -118,6 +121,14 @@ private:
 public:
 	/// @brief Default destructor.
 	~Detour() { }
+
+	bool IsEnabled() { return this->enabled; }
+
+	void Enable() { this->enabled = true; }
+
+	void Disable() { this->enabled = false; }
+
+	void SetEnabled(bool value) { this->enabled = value; }
 
 	///  @brief Gets the detour type.
 	/// @return The detour type.

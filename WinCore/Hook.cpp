@@ -36,6 +36,11 @@ namespace tcpie { namespace wincore {
 
 DetourRet Detour::CallDetour(DetourArgs* Arguments) const
 {
+	if (!this->enabled)
+	{
+		return DETOUR_NOCHANGE;
+	}
+
 	if (this->detour_class != NULL)
 	{
 		return const_cast<IDetourClass*>(this->detour_class)->DetourCallback(Arguments);
