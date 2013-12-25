@@ -20,65 +20,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#include "stdafx.h"
+#ifndef _NOTIFYHOOKTEST_H_
+#define _NOTIFYHOOKTEST_H_
 
-#include "..\WinCore\Function.h"
-#include "..\WinCore\Thread.h"
-#include "..\WinCore\Process.h"
-#include "..\WinCore\MemoryRegion.h"
-#include "..\WinCore\NotifyHook.h"
+bool notifyhook_test();
 
-#include "HookTest.h"
-#include "NotifyHookTest.h"
-
-#include <vector>
-#include <iostream>
-#include <string>
-
-#ifdef _DEBUG
-#pragma comment(lib, "..\\Debug\\WinCore.lib")
-#else
-#pragma comment(lib, "..\\Release\\WinCore.lib")
 #endif
-
-using namespace tcpie::wincore;
-using namespace std;
-
-float __cdecl multiply(float a, int b)
-{
-	float ret = (float)b * a;
-	float* ret_addr = &ret;
-	return ret;
-}
-
-int _tmain(int argc, _TCHAR* argv[])
-{
-	hook_test();
-
-	Function mult = Function(multiply,
-									CDECL_CALLCONV,
-									2,
-									DWORD_SIZE);
-
-	vector<void*> args = vector<void*>();
-	float first = 3.0f;
-	args.push_back((void*)5);
-	args.push_back(*(void**)&first);
-	
-
-	DWORD ret = 0;
-	DWORD* ret_addr = &ret;
-	mult.Call(&args,
-			  &ret);
-
-	cout << hex << ret << dec << endl;
-
-	notifyhook_test();
-
-	MessageBoxA(NULL, "", "wait", MB_OK);
-
-	return 0;
-
-
-}
-
