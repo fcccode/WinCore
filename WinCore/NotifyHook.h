@@ -65,9 +65,11 @@ private:
 	const NotifyHook* hook;
 	NotifyDetourCallback detour_function;
 	const INotifyDetourClass* detour_class;
+	bool enabled;
 
 	NotifyDetour(const NotifyHook* FnHook, NotifyDetourCallback DetourFunction)
 	{
+		this->enabled = true;
 		this->hook = FnHook;
 		this->detour_function = DetourFunction;
 		this->detour_class = NULL;
@@ -75,6 +77,7 @@ private:
 
 	NotifyDetour(const NotifyHook* FnHook, const INotifyDetourClass* DetourClass)
 	{
+		this->enabled = true;
 		this->hook = FnHook;
 		this->detour_class = DetourClass;
 		this->detour_function = NULL;
@@ -85,6 +88,14 @@ private:
 public:
 	/// @brief Default destructor.
 	~NotifyDetour() { }
+
+	bool IsEnabled() { return this->enabled; }
+
+	void Enable() { this->enabled = true; }
+
+	void Disable() { this->enabled = false; }
+
+	void SetEnabled(bool value) { this->enabled = value; }
 
 	/// @brief Gets the hook this detour belongs to.
 	/// @return The hook this detour belongs to.

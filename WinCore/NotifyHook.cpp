@@ -53,6 +53,11 @@ namespace tcpie { namespace wincore {
 
 	void NotifyDetour::CallDetour(const void* FunctionAddress) const
 	{
+		if (!this->enabled)
+		{
+			return;
+		}
+
 		if (this->detour_class != NULL)
 		{
 			const_cast<INotifyDetourClass*>(this->detour_class)->NotifyDetourCallback(const_cast<void*>(FunctionAddress));
@@ -182,7 +187,9 @@ namespace tcpie { namespace wincore {
 
 		if (DoSafetyChecks)
 		{
-			if (*(BYTE*)((DWORD)TargetFunction->GetAddress() - 1) != 0x90 && *(BYTE*)((DWORD)TargetFunction->GetAddress() - 1) != 0xCC)
+			if (*(BYTE*)((DWORD)TargetFunction->GetAddress() - 1) != 0x90 &&		// NOP 
+				*(BYTE*)((DWORD)TargetFunction->GetAddress() - 1) != 0xCC &&		// Filling
+				*(BYTE*)((DWORD)TargetFunction->GetAddress() - 1) != 0xC3)		// RET
 			{
 				// Input is most likely faulty, we are probably not at a real functions start address, but somewhere *inside* a function!!
 				return NULL;
@@ -261,7 +268,7 @@ namespace tcpie { namespace wincore {
 		// First occurence == jmp offset to unhooked function
 		void* post_code_jmp_instr_addr = (DWORD*)post_code_region->ReplaceFirstOccurence(wildcard, NULL);
 
-		DWORD post_code_jmp_offset = jmp_offs_notify(post_code_jmp_instr_addr, unhooked_fn_region->GetStartAddress(), ASM_SIZE(jmp_far));
+		DWORD post_code_jmp_offset = jmp_offs_notify((void*)((DWORD)post_code_jmp_instr_addr - 1), unhooked_fn_region->GetStartAddress(), ASM_SIZE(jmp_far));
 
 		(*(DWORD*)post_code_jmp_instr_addr) = post_code_jmp_offset;
 
@@ -269,24 +276,17 @@ namespace tcpie { namespace wincore {
 			//-- Now we setup the pre code
 		MemoryRegion* pre_code_region = Process::GetCurrentProcess()->WriteMemory(ASM(push_ecx_and_two_args), ASM_SIZE(push_ecx_and_two_args));
 
-		// First occurence == address of post code
-		pre_code_region->ReplaceFirstOccurence(wildcard, (DWORD)post_code_region->GetStartAddress());
-
-		// Second occurence == first parameter for detour: relevant hook
+		// First occurence == first parameter for detour: relevant hook
 		pre_code_region->ReplaceFirstOccurence(wildcard, (DWORD)ret);
 
+		// Second occurence == address of post code
+		pre_code_region->ReplaceFirstOccurence(wildcard, (DWORD)post_code_region->GetStartAddress());
+
 		// Third occurence == jmp offset to detour function
-		void* pre_code_jmp_instr_addr = (DWORD*)pre_code_region->ReplaceFirstOccurence(wildcard, NULL);
-
-		DWORD pre_code_jmp_offset = jmp_offs_notify(pre_code_jmp_instr_addr, &NotifyHook::global_detour, ASM_SIZE(jmp_far));
-
-		(*(DWORD*)pre_code_jmp_instr_addr) = pre_code_jmp_offset;
-
+		pre_code_region->ReplaceFirstOccurence(wildcard, (DWORD)&NotifyHook::global_detour);
 
 			//-- Now we setup the patch	
 		DWORD patch_jmp_offset = jmp_offs_notify(TargetFunctionAddress, pre_code_region->GetStartAddress(), ASM_SIZE(jmp_far));
-
-		std::cout << "pre_code_ addr: 0x" << std::hex << pre_code_region->GetStartAddress() << std::dec << " jmp offset: 0x" << std::hex << patch_jmp_offset << std::dec << std::endl;
 
 		// First occurence == jmp offset to pre code
 		patch->ReplaceFirstOccurence(wildcard, patch_jmp_offset);		

@@ -45,27 +45,17 @@ float __cdecl multiply(float a, int b)
 	return ret;
 }
 
-__declspec(noinline) int printLOL(int val)
+int __cdecl add(int a, float b, int* ret_buffer)
 {
-	cout << "LOL " << val << endl;
+	int ret = a + (int)b;
 
-	return val - 2;
-}
+	*ret_buffer = ret;
 
-void __stdcall notify_callback(void* fn_addr)
-{
-	cout << hex << "Notified of call of fn @0x" << fn_addr << dec << endl;
-}
-
-int __cdecl add(int a, float b)
-{
-	return a + (int)b;
+	return ret;
 }
 
 DetourRet __stdcall add_change_arg(DetourArgs* args)
 {
-	cout << "add detour" << endl;
-
 	args->Arguments->at(0) = (void*)4;
 
 	return DETOUR_ARGCHANGED;
@@ -78,6 +68,24 @@ DetourRet __stdcall add_change_ret(DetourArgs* args)
 	return DETOUR_RETCHANGED;
 }
 
+DetourRet __stdcall add_block_fn(DetourArgs* args)
+{
+	args->CustomReturnValue = 600;
+
+	return DETOUR_FNBLOCKED;
+}
+
+class detour_class : public tcpie::wincore::IDetourClass
+{
+public:
+	virtual DetourRet DetourCallback(DetourArgs* Arguments) override
+	{
+		cout << "\tClass detour working? 1" << endl;
+
+		return DETOUR_NOCHANGE;
+	}
+};
+
 bool hook_test()
 {
 	cout << "Hook test:" << endl;
@@ -87,7 +95,7 @@ bool hook_test()
 	Function* target = Function::FindFunction(signature,
 		mask,
 		CDECL_CALLCONV,			// Calling convention
-		2,						// Number of arguments
+		3,						// Number of arguments
 		DWORD_SIZE);			// Return type
 
 	cout << "\tFindFunction() succeeded? " << (bool)(target != NULL) << endl;
@@ -100,20 +108,86 @@ bool hook_test()
 
 	cout << "\tRegisterDetour(fn) succeeded? " << (bool)(cdecl_change_arg_detour != NULL) << endl;
 
+	Detour* cdecl_class_detour = cdecl_hook->RegisterDetour(new detour_class(), DETOUR_PRE);
+
+	cout << "\tRegisterDetour(class) succeeded? " << (bool)(cdecl_class_detour != NULL) << endl;
+
 	Detour* cdecl_change_ret_detour = cdecl_hook->RegisterDetour(add_change_ret, DETOUR_POST);
 
+	Detour* cdecl_blockfn = cdecl_hook->RegisterDetour(add_block_fn, DETOUR_PRE);
+
+	cdecl_blockfn->Disable();
 	cdecl_hook->Enable();
 	cdecl_change_ret_detour->Disable();
 
-	int ret = add(2, 5);
+	int ret_buffer = 0;
+	int ret = add(2, 5, &ret_buffer);
+
+	cdecl_class_detour->Disable();
 
 	cout << "\tChange arg succeeded? " << (bool)(ret == 9) << endl;
 	cdecl_change_ret_detour->Enable();
 	cdecl_change_arg_detour->Disable();
 
-	ret = add(2, 5);
+	ret = add(2, 5, &ret_buffer);
 
 	cout << "\tChange ret succeeded? " << (bool)(ret == 500) << endl;
+	cdecl_change_ret_detour->Disable();
+
+	ret_buffer = 0;
+	cdecl_blockfn->Enable();
+	ret = add(2, 5, &ret_buffer);
+
+	cout << "\tBlock function succeeded? " << (bool)(ret_buffer == 0 && ret == 600) << endl;
+
+	cout << "Hook test done. " << endl;
+
+	return true;
+}
+
+__declspec(noinline) int printLOL(int val)
+{
+	return val - 2;
+}
+
+void __stdcall notify_callback(void* fn_addr)
+{
+	cout << "\tNotify callback called? 1    (fn 0x" << hex << fn_addr << dec << ")" << endl;
+}
+
+class notify_callback_class : public tcpie::wincore::INotifyDetourClass
+{
+public:
+	notify_callback_class()
+	{
+
+	}
+
+	virtual void NotifyDetourCallback(void* HookedFunctionAddress) override
+	{
+		cout << "\tNotify class callback called? 1    (fn 0x" << hex << HookedFunctionAddress << dec << ")" << endl;
+	}
+};
+
+bool notifyhook_test()
+{
+	cout << "NotifyHook test:" << endl;
+
+	NotifyHook* n_hook = NotifyHook::CreateHook(&printLOL, new wstring(L"printLOL"));
+	
+	cout << "\tCreateHook succeeded? " << (bool)(n_hook != NULL) << endl;
+	
+	NotifyDetour* n_detour1 = n_hook->RegisterDetour(notify_callback);
+
+	cout << "\tRegisterDetour(fn) succeeded? " << (bool)(n_detour1 != NULL) << endl;
+
+	NotifyDetour* n_detour2 = n_hook->RegisterDetour(new notify_callback_class());
+
+	cout << "\tRegisterDetour(class) succeeded? " << (bool)(n_detour2 != NULL) << endl;
+
+	n_hook->Enable();
+
+	int ret = printLOL(10);
 
 	return true;
 }
@@ -140,12 +214,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	cout << hex << ret << dec << endl;
 
-	NotifyHook* n_hook = NotifyHook::CreateHook(&printLOL, new wstring(L"printLOL"));
-	n_hook->Enable();
-
-	ret = printLOL(10);
-
-	cout << ret << endl;
+	notifyhook_test();
 
 	MessageBoxA(NULL, "", "wait", MB_OK);
 
