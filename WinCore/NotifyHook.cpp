@@ -60,12 +60,12 @@ namespace tcpie { namespace wincore {
 
 		if (this->detour_class != NULL)
 		{
-			const_cast<INotifyDetourClass*>(this->detour_class)->NotifyDetourCallback(const_cast<void*>(FunctionAddress));
+			const_cast<INotifyDetourClass*>(this->detour_class)->NotifyDetourCallback(const_cast<NotifyDetour*>(this));
 		}
 
 		if (this->detour_function != NULL)
 		{
-			this->detour_function(const_cast<void*>(FunctionAddress));
+			this->detour_function(const_cast<NotifyDetour*>(this));
 		}
 	}
 

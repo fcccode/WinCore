@@ -33,7 +33,7 @@ THE SOFTWARE.
 #include <iostream>
 #include <string>
 
-#pragma comment(lib, "..\\Release\\WinCore.lib")
+#pragma comment(lib, "..\\Debug\\WinCore.lib")
 
 using namespace tcpie::wincore;
 using namespace std;
@@ -268,9 +268,9 @@ __declspec(noinline) int printLOL(int val)
 	return val - 2;
 }
 
-void __stdcall notify_callback(void* fn_addr)
+void __stdcall notify_callback(NotifyDetour* Detour)
 {
-	cout << "\tNotify callback called? 1    (fn 0x" << hex << fn_addr << dec << ")" << endl;
+	cout << "\tNotify callback called? 1    (fn 0x" << hex << Detour->GetHook()->GetFunctionAddress() << dec << ")" << endl;
 }
 
 class notify_callback_class : public tcpie::wincore::INotifyDetourClass
@@ -281,9 +281,9 @@ public:
 
 	}
 
-	virtual void NotifyDetourCallback(void* HookedFunctionAddress) override
+	virtual void NotifyDetourCallback(NotifyDetour* Detour) override
 	{
-		cout << "\tNotify class callback called? 1    (fn 0x" << hex << HookedFunctionAddress << dec << ")" << endl;
+		cout << "\tNotify class callback called? 1    (fn 0x" << hex << Detour->GetHook()->GetFunctionAddress() << dec << ")" << endl;
 	}
 };
 

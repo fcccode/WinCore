@@ -35,9 +35,10 @@ THE SOFTWARE.
 namespace tcpie { namespace wincore {
 
 class MemoryRegion;
+class NotifyDetour;
 
 /// @brief Your callback function needs to be a NotifyDetourCallback.
-typedef void (__stdcall *NotifyDetourCallback) (void* HookedFunctionAddress);
+typedef void (__stdcall *NotifyDetourCallback) (NotifyDetour* Detour);
 
 /// @brief Any detour classes need to inherit from INotifyDetourClass.
 ///
@@ -50,10 +51,10 @@ public:
 
 	// NOTE: While Arguments is not marked const, you should NOT delete it!
 	/// @brief Callback that is called when the hooked function is executed.
-	/// @param HookedFunctionAddress		The address of the hooked function.
+	/// @param Detour			The detour corresponding to this call.
 	/// @return					void
 	///
-	virtual void NotifyDetourCallback(void* HookedFunctionAddress) = 0;
+	virtual void NotifyDetourCallback(NotifyDetour* Detour) = 0;
 };
 
 /// @brief Describes a detour (aka callback) to a function.
