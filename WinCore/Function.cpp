@@ -103,8 +103,6 @@ Function* Function::FindFunction(const std::vector<BYTE>* Signature, const std::
 		}
 	}
 
-	delete module;
-
 	return new Function(process, address, CallConv, ArgCount, RetType);
 }
 
