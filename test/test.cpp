@@ -33,7 +33,11 @@ THE SOFTWARE.
 #include <iostream>
 #include <string>
 
+#ifdef DEBUG
 #pragma comment(lib, "..\\Debug\\WinCore.lib")
+#else
+#pragma comment(lib, "..\\Release\\WinCore.lib")
+#endif
 
 using namespace tcpie::wincore;
 using namespace std;
@@ -48,7 +52,7 @@ float __cdecl multiply(float a, int b)
 class test_class
 {
 public:
-	int add(int a, float b, int* ret_buffer)
+	__declspec(noinline) int add(int a, float b, int* ret_buffer)
 	{
 		int ret = a + (int)b;
 
@@ -57,13 +61,13 @@ public:
 		return ret;
 	}
 
-	int add_end(int a, float b, int* ret_buffer)
+	__declspec(noinline) int add_end(int a, float b, int* ret_buffer)
 	{
 		return 0;
 	}
 };
 
-int __cdecl add(int a, float b, int* ret_buffer)
+__declspec(noinline) int __cdecl add(int a, float b, int* ret_buffer)
 {
 	int ret = a + (int)b;
 
@@ -72,9 +76,9 @@ int __cdecl add(int a, float b, int* ret_buffer)
 	return ret;
 }
 
-void add_end() { }
+__declspec(noinline) void add_end() { }
 
-int __stdcall add_stdcall(int a, float b, int* ret_buffer)
+__declspec(noinline) int __stdcall add_stdcall(int a, float b, int* ret_buffer)
 {
 	int ret = a + (int)b;
 
@@ -83,23 +87,23 @@ int __stdcall add_stdcall(int a, float b, int* ret_buffer)
 	return ret;
 }
 
-void add_stdcall_end() { }
+__declspec(noinline) void add_stdcall_end() { }
 
-DetourRet __stdcall add_change_arg(DetourArgs* args)
+__declspec(noinline) DetourRet __stdcall add_change_arg(DetourArgs* args)
 {
 	args->Arguments->at(0) = (void*)4;
 
 	return DETOUR_ARGCHANGED;
 }
 
-DetourRet __stdcall add_change_ret(DetourArgs* args)
+__declspec(noinline) DetourRet __stdcall add_change_ret(DetourArgs* args)
 {
 	args->CustomReturnValue = 500;
 
 	return DETOUR_RETCHANGED;
 }
 
-DetourRet __stdcall add_block_fn(DetourArgs* args)
+__declspec(noinline) DetourRet __stdcall add_block_fn(DetourArgs* args)
 {
 	args->CustomReturnValue = 600;
 
@@ -109,7 +113,7 @@ DetourRet __stdcall add_block_fn(DetourArgs* args)
 class detour_class : public tcpie::wincore::IDetourClass
 {
 public:
-	virtual DetourRet DetourCallback(DetourArgs* Arguments) override
+	__declspec(noinline) virtual DetourRet DetourCallback(DetourArgs* Arguments) override
 	{
 		cout << "\tClass detour working? 1" << endl;
 
@@ -268,7 +272,7 @@ __declspec(noinline) int printLOL(int val)
 	return val - 2;
 }
 
-void __stdcall notify_callback(NotifyDetour* Detour)
+__declspec(noinline) void __stdcall notify_callback(NotifyDetour* Detour)
 {
 	cout << "\tNotify callback called? 1    (fn 0x" << hex << Detour->GetHook()->GetFunctionAddress() << dec << ")" << endl;
 }
@@ -281,7 +285,7 @@ public:
 
 	}
 
-	virtual void NotifyDetourCallback(NotifyDetour* Detour) override
+	__declspec(noinline) virtual void NotifyDetourCallback(NotifyDetour* Detour) override
 	{
 		cout << "\tNotify class callback called? 1    (fn 0x" << hex << Detour->GetHook()->GetFunctionAddress() << dec << ")" << endl;
 	}
