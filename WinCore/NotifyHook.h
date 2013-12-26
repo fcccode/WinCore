@@ -100,7 +100,7 @@ public:
 
 	/// @brief Gets the hook this detour belongs to.
 	/// @return The hook this detour belongs to.
-	const NotifyHook* GetHook() const { return this->hook; }
+	NotifyHook* GetHook() const { return const_cast<NotifyHook*>(this->hook); }
 
 	/// @brief Gets the detour callback class, if any.
 	/// @return The detour callback class. If no instance was specified, NULL is returned.
