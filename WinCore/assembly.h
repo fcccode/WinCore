@@ -75,8 +75,8 @@ ASMSTUB asm_push_extra_arg_end();
 ASMSTUB asm_push_two_args();
 ASMSTUB asm_push_two_args_end();
 
-ASMSTUB asm_push_ecx_and_two_args();
-ASMSTUB asm_push_ecx_and_two_args_end();
+ASMSTUB asm_push_registers_two_args_and_jump();
+ASMSTUB asm_push_registers_two_args_and_jump_end();
 
 ASMSTUB asm_pop_ecx_jmp();
 ASMSTUB asm_pop_ecx_jmp_end();

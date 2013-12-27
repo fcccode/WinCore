@@ -51,7 +51,7 @@ namespace tcpie { namespace wincore {
 
 	std::map<std::wstring, NotifyHook*>* NotifyHook::hooks = new std::map<std::wstring, NotifyHook*>();
 
-	void NotifyDetour::CallDetour(const void* FunctionAddress) const
+	void NotifyDetour::CallDetour(const void* FunctionAddress, NotifyDetourArgs* Args) const
 	{
 		if (!this->enabled)
 		{
@@ -60,33 +60,34 @@ namespace tcpie { namespace wincore {
 
 		if (this->detour_class != NULL)
 		{
-			const_cast<INotifyDetourClass*>(this->detour_class)->NotifyDetourCallback(const_cast<NotifyDetour*>(this));
+			const_cast<INotifyDetourClass*>(this->detour_class)->NotifyDetourCallback(const_cast<NotifyDetour*>(this), Args);
 		}
 
 		if (this->detour_function != NULL)
 		{
-			this->detour_function(const_cast<NotifyDetour*>(this));
+			this->detour_function(const_cast<NotifyDetour*>(this), Args);
 		}
 	}
 
-	DWORD NotifyHook::detour()
+	DWORD NotifyHook::detour(NotifyDetourArgs* Args)
 	{
 		for (size_t i = 0; i < this->pre_detours->size(); i++)
 		{
-			this->pre_detours->at(i)->CallDetour(this->function);
+			this->pre_detours->at(i)->CallDetour(this->function, Args);
 		}
 
 		for (size_t i = 0; i < this->post_detours->size(); i++)
 		{
-			this->post_detours->at(i)->CallDetour(this->function);
+			this->post_detours->at(i)->CallDetour(this->function, Args);
 		}
 
 		return 0;
 	}
 
-	void NotifyHook::global_detour(NotifyHook* hook)
+	void NotifyHook::global_detour(NotifyHook* hook, DWORD esp, DWORD edi, DWORD ebx, DWORD edx, DWORD ecx, DWORD eax, DWORD ebp)
 	{
-		hook->detour();
+		NotifyDetourArgs args = NotifyDetourArgs(esp, edi, ebx, edx, ecx, eax, ebp);
+		hook->detour(&args);
 	}
 
 	NotifyHook::NotifyHook(const void* TargetFunction, std::wstring* Name, void* UnhookedFunction, MemoryRegion* OldCode, MemoryRegion* PatchCode)
@@ -274,7 +275,7 @@ namespace tcpie { namespace wincore {
 
 
 			//-- Now we setup the pre code
-		MemoryRegion* pre_code_region = Process::GetCurrentProcess()->WriteMemory(ASM(push_ecx_and_two_args), ASM_SIZE(push_ecx_and_two_args));
+		MemoryRegion* pre_code_region = Process::GetCurrentProcess()->WriteMemory(ASM(push_registers_two_args_and_jump), ASM_SIZE(push_registers_two_args_and_jump));
 
 		// First occurence == first parameter for detour: relevant hook
 		pre_code_region->ReplaceFirstOccurence(wildcard, (DWORD)ret);

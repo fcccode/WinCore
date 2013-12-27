@@ -41,6 +41,17 @@ class MemoryRegion;
 class Process;
 class Thread;
 
+enum X86Register
+{
+	EAX = 0,
+	ECX,
+	ESP,
+	EBP,
+	EBX,
+	EDX,
+	EDI,
+};
+
 /// @brief		Contains the types of sizes a function can return
 ///
 /// @public

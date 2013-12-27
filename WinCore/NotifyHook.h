@@ -32,13 +32,16 @@ THE SOFTWARE.
 #include <vector>
 #include <map>
 
+#include "Function.h"
+
 namespace tcpie { namespace wincore {
 
 class MemoryRegion;
 class NotifyDetour;
+class NotifyDetourArgs;
 
 /// @brief Your callback function needs to be a NotifyDetourCallback.
-typedef void (__stdcall *NotifyDetourCallback) (NotifyDetour* Detour);
+typedef void (__stdcall *NotifyDetourCallback) (NotifyDetour* Detour, NotifyDetourArgs* Args);
 
 /// @brief Any detour classes need to inherit from INotifyDetourClass.
 ///
@@ -54,7 +57,37 @@ public:
 	/// @param Detour			The detour corresponding to this call.
 	/// @return					void
 	///
-	virtual void NotifyDetourCallback(NotifyDetour* Detour) = 0;
+	virtual void NotifyDetourCallback(NotifyDetour* Detour, NotifyDetourArgs* Args) = 0;
+};
+
+class __declspec(dllexport) NotifyDetourArgs
+{
+private:
+	std::map<X86Register, DWORD>* registers;
+
+public:
+	NotifyDetourArgs(DWORD esp, DWORD edi, DWORD ebx, DWORD edx, DWORD ecx, DWORD eax, DWORD ebp)
+	{
+		this->registers = new std::map<X86Register, DWORD>();
+
+		(*this->registers)[EDI] = edi;
+		(*this->registers)[EBX] = ebx;
+		(*this->registers)[EDX] = edx;
+		(*this->registers)[ECX] = ecx;
+		(*this->registers)[EAX] = eax;
+		(*this->registers)[EBP] = ebp;
+		(*this->registers)[ESP] = esp;
+	}
+
+	std::map<X86Register, DWORD>* GetRegisters() { return this->registers; }
+
+	DWORD GetEDI() { return (*this->registers)[EDI]; }
+	DWORD GetEBX() { return (*this->registers)[EBX]; }
+	DWORD GetEDX() { return (*this->registers)[EDX]; }
+	DWORD GetECX() { return (*this->registers)[ECX]; }
+	DWORD GetEAX() { return (*this->registers)[EAX]; }
+	DWORD GetEBP() { return (*this->registers)[EBP]; }
+	DWORD GetESP() { return (*this->registers)[ESP]; }
 };
 
 /// @brief Describes a detour (aka callback) to a function.
@@ -84,7 +117,7 @@ private:
 		this->detour_function = NULL;
 	}
 
-	void CallDetour(const void* FunctionAddress) const;
+	void CallDetour(const void* FunctionAddress, NotifyDetourArgs* Args) const;
 
 public:
 	/// @brief Default destructor.
@@ -132,8 +165,8 @@ private:
 	NotifyHook(const void* TargetFunction, std::wstring* Name, void* UnhookedFunction, MemoryRegion* OldCode, MemoryRegion* PatchCode);
 	~NotifyHook();
 
-	DWORD detour();
-	static void __stdcall global_detour(NotifyHook* hook);
+	DWORD detour(NotifyDetourArgs* Args);
+	static void __stdcall global_detour(NotifyHook* hook, DWORD esp, DWORD edi, DWORD ebx, DWORD edx, DWORD ecx, DWORD eax, DWORD ebp);
 
 public:	
 	/// @brief Changes the enabled state of the hook.

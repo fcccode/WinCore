@@ -58,8 +58,8 @@ asm_jmp_far_end PROTO C
 asm_push_two_args PROTO C
 asm_push_two_args_end PROTO C
 
-asm_push_ecx_and_two_args PROTO C
-asm_push_ecx_and_two_args_end PROTO C
+asm_push_registers_two_args_and_jump PROTO C
+asm_push_registers_two_args_and_jump_end PROTO C
 
 asm_pop_ecx_jmp PROTO C
 asm_pop_ecx_jmp_end PROTO C
@@ -242,21 +242,40 @@ asm_push_two_args_end ENDP
 
 ; ----------------------
 
-asm_push_ecx_and_two_args PROC C
+asm_push_registers_two_args_and_jump PROC C
+	; Save all registers
 	push ebp
 	push eax
 	push ecx
 	push edx
 	push ebx
 	push edi
+	; Push registers, so they are visible to our detour
+	push ebp
+	push eax
+	push ecx
+	push edx
+	push ebx
+	push edi
+
+	; Calculate ESP and push as well
+	mov eax, esp		; push current value of esp
+	mov ecx, 12			; store num of pushes done in this stub
+	imul ecx, 4			; get size in bytes (assumes registers are 4 bytes large)
+	add eax, ecx		; compensate for pushes done in this stub (assumes up-growing stack)
+	; Push ESP
+	push eax
+
+	; Push relevant arg (i.e. 'sender')
 	push 1337h
+	; Push address to return to
 	push 1337h
 	mov eax, 1337h
 	jmp eax
-asm_push_ecx_and_two_args ENDP
+asm_push_registers_two_args_and_jump ENDP
 
-asm_push_ecx_and_two_args_end PROC C
-asm_push_ecx_and_two_args_end ENDP
+asm_push_registers_two_args_and_jump_end PROC C
+asm_push_registers_two_args_and_jump_end ENDP
 
 ; ----------------------
 

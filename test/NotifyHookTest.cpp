@@ -35,9 +35,20 @@ __declspec(noinline) int printLOL(int val)
 	return val - 2;
 }
 
-__declspec(noinline) void __stdcall notify_callback(NotifyDetour* Detour)
+class notify_test_class
 {
-	cout << "\tNotify callback called? 1    (fn 0x" << hex << Detour->GetHook()->GetFunctionAddress() << dec << ")" << endl;
+public:
+	__declspec(noinline) int printLOL(int val)
+	{
+		return val - 2;
+	}
+};
+
+typedef int (notify_test_class::*notify_member_fn)(int);
+
+__declspec(noinline) void __stdcall notify_callback(NotifyDetour* Detour, NotifyDetourArgs* Args)
+{
+	cout << "\tNotify callback called? 1    (fn 0x" << hex << Detour->GetHook()->GetFunctionAddress() << dec << ") ECX: " << hex << Args->GetECX() << dec << endl;
 }
 
 class notify_callback_class : public tcpie::wincore::INotifyDetourClass
@@ -48,15 +59,30 @@ public:
 
 	}
 
-	__declspec(noinline) virtual void NotifyDetourCallback(NotifyDetour* Detour) override
+	__declspec(noinline) virtual void NotifyDetourCallback(NotifyDetour* Detour, NotifyDetourArgs* Args) override
 	{
-		cout << "\tNotify class callback called? 1    (fn 0x" << hex << Detour->GetHook()->GetFunctionAddress() << dec << ")" << endl;
+		cout << "\tNotify callback called? 1    (fn 0x" << hex << Detour->GetHook()->GetFunctionAddress() << dec << ") ECX: " << hex << Args->GetECX() << dec << endl;
 	}
 };
 
 bool notifyhook_test()
 {
 	cout << "NotifyHook test:" << endl;
+
+	notify_test_class instance;
+
+	notify_member_fn member_fn = &notify_test_class::printLOL;
+	void* member_fn_ptr = NULL;
+
+	__asm
+	{
+		push eax;
+		mov eax, member_fn;
+		mov member_fn_ptr, eax;
+		pop eax;
+	}
+
+	cout << "\tTest class instance: 0x" << hex << (void*)&instance << dec << endl;
 
 	NotifyHook* n_hook = NotifyHook::CreateHook(&printLOL, new wstring(L"printLOL"));
 
@@ -73,6 +99,16 @@ bool notifyhook_test()
 	n_hook->Enable();
 
 	int ret = printLOL(10);
+
+	NotifyHook* n_hook_class = NotifyHook::CreateHook(member_fn_ptr, new wstring(L"test_class::printLOL"));
+
+	NotifyDetour* n_detour3 = n_hook_class->RegisterDetour(notify_callback);
+
+	NotifyDetour* n_detour4 = n_hook_class->RegisterDetour(new notify_callback_class());
+
+	n_hook_class->Enable();
+
+	ret = instance.printLOL(10);
 
 	return true;
 }
