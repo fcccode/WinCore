@@ -259,7 +259,7 @@ asm_push_registers_two_args_and_jump PROC C
 	push edi
 
 	; Calculate ESP and push as well
-	mov eax, esp		; push current value of esp
+	mov eax, esp		; get current value of esp
 	mov ecx, 12			; store num of pushes done in this stub
 	imul ecx, 4			; get size in bytes (assumes registers are 4 bytes large)
 	add eax, ecx		; compensate for pushes done in this stub (assumes up-growing stack)

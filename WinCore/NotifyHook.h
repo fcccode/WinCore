@@ -64,6 +64,7 @@ class __declspec(dllexport) NotifyDetourArgs
 {
 private:
 	std::map<X86Register, DWORD>* registers;
+	void* address_to_return_to;
 
 public:
 	NotifyDetourArgs(DWORD esp, DWORD edi, DWORD ebx, DWORD edx, DWORD ecx, DWORD eax, DWORD ebp)
@@ -77,10 +78,13 @@ public:
 		(*this->registers)[EAX] = eax;
 		(*this->registers)[EBP] = ebp;
 		(*this->registers)[ESP] = esp;
+
+		this->address_to_return_to = *((void**)esp);
 	}
 
 	std::map<X86Register, DWORD>* GetRegisters() { return this->registers; }
 
+	void* GetReturnAddress() { return this->address_to_return_to; }
 	DWORD GetEDI() { return (*this->registers)[EDI]; }
 	DWORD GetEBX() { return (*this->registers)[EBX]; }
 	DWORD GetEDX() { return (*this->registers)[EDX]; }

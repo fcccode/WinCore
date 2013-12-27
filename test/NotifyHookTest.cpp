@@ -49,6 +49,7 @@ typedef int (notify_test_class::*notify_member_fn)(int);
 __declspec(noinline) void __stdcall notify_callback(NotifyDetour* Detour, NotifyDetourArgs* Args)
 {
 	cout << "\tNotify callback called? 1    (fn 0x" << hex << Detour->GetHook()->GetFunctionAddress() << dec << ") ECX: " << hex << Args->GetECX() << dec << endl;
+	cout << "\t ret addr: 0x" << hex << Args->GetReturnAddress() << dec << endl;
 }
 
 class notify_callback_class : public tcpie::wincore::INotifyDetourClass
@@ -62,6 +63,7 @@ public:
 	__declspec(noinline) virtual void NotifyDetourCallback(NotifyDetour* Detour, NotifyDetourArgs* Args) override
 	{
 		cout << "\tNotify callback called? 1    (fn 0x" << hex << Detour->GetHook()->GetFunctionAddress() << dec << ") ECX: " << hex << Args->GetECX() << dec << endl;
+		cout << "\t ret addr: 0x" << hex << Args->GetReturnAddress() << dec << endl;
 	}
 };
 
