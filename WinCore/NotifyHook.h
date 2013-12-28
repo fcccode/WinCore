@@ -65,8 +65,25 @@ class __declspec(dllexport) NotifyDetourArgs
 private:
 	std::map<X86Register, DWORD>* registers;
 	void* address_to_return_to;
+	unsigned long long timestamp;
 
 public:
+	NotifyDetourArgs(NotifyDetourArgs& other)
+	{
+		this->registers = new std::map<X86Register, DWORD>();
+
+		(*this->registers)[EDI] = other.GetEDI();
+		(*this->registers)[EBX] = other.GetEBX();
+		(*this->registers)[EDX] = other.GetEDX();
+		(*this->registers)[ECX] = other.GetECX();
+		(*this->registers)[EAX] = other.GetEAX();
+		(*this->registers)[EBP] = other.GetEBP();
+		(*this->registers)[ESP] = other.GetESP();
+
+		this->address_to_return_to = *((void**)other.GetESP());
+		this->timestamp = other.GetTimeOfCall();
+	}
+
 	NotifyDetourArgs(DWORD esp, DWORD edi, DWORD ebx, DWORD edx, DWORD ecx, DWORD eax, DWORD ebp)
 	{
 		this->registers = new std::map<X86Register, DWORD>();
@@ -80,10 +97,12 @@ public:
 		(*this->registers)[ESP] = esp;
 
 		this->address_to_return_to = *((void**)esp);
+		this->timestamp = GetTickCount64();
 	}
 
 	std::map<X86Register, DWORD>* GetRegisters() { return this->registers; }
 
+	unsigned long long GetTimeOfCall() { return this->timestamp; }
 	void* GetReturnAddress() { return this->address_to_return_to; }
 	DWORD GetEDI() { return (*this->registers)[EDI]; }
 	DWORD GetEBX() { return (*this->registers)[EBX]; }

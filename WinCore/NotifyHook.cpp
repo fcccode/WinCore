@@ -186,6 +186,14 @@ namespace tcpie { namespace wincore {
 		Function* TargetFunction = new Function(TargetFunctionAddress, CDECL_CALLCONV, 0, NONE);
 		PatchInfo* patchinfo = TargetFunction->FindPatchInfo();
 
+		if (patchinfo == NULL)
+		{
+			// Unsupported function. Retrieval of patch info failed!
+			delete TargetFunction;
+
+			return NULL;
+		}
+
 		if (DoSafetyChecks)
 		{
 			if (*(BYTE*)((DWORD)TargetFunction->GetAddress() - 1) != 0x90 &&		// NOP 
@@ -193,6 +201,8 @@ namespace tcpie { namespace wincore {
 				*(BYTE*)((DWORD)TargetFunction->GetAddress() - 1) != 0xC3)		// RET
 			{
 				// Input is most likely faulty, we are probably not at a real functions start address, but somewhere *inside* a function!!
+				delete TargetFunction;
+
 				return NULL;
 			}
 		}		
@@ -291,6 +301,8 @@ namespace tcpie { namespace wincore {
 
 		// First occurence == jmp offset to pre code
 		patch->ReplaceFirstOccurence(wildcard, patch_jmp_offset);		
+
+		delete TargetFunction;
 
 		return ret;
 	}

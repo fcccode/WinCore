@@ -318,9 +318,16 @@ Hook* Hook::CreateHook(const Function* TargetFunction, std::wstring* Name, DWORD
 {
 	PatchInfo* patchinfo = const_cast<Function*>(TargetFunction)->FindPatchInfo();
 
+	if (patchinfo == NULL)
+	{
+		return NULL;
+	}
+
 	if (DoSafetyChecks)
 	{
-		if (*(BYTE*)((DWORD)TargetFunction->GetAddress() - 1) != 0x90 && *(BYTE*)((DWORD)TargetFunction->GetAddress() - 1) != 0xCC)
+		if (*(BYTE*)((DWORD)TargetFunction->GetAddress() - 1) != 0x90 &&		// NOP 
+			*(BYTE*)((DWORD)TargetFunction->GetAddress() - 1) != 0xCC &&		// Filling
+			*(BYTE*)((DWORD)TargetFunction->GetAddress() - 1) != 0xC3)		// RET
 		{
 			// Input is most likely faulty, we are probably not at a real functions start address, but somewhere *inside* a function!!
 			return NULL;
