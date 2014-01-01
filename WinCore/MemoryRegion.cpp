@@ -56,35 +56,43 @@ void* MemoryRegion::ReplaceFirstOccurence(DWORD Occurence, DWORD Replacement) co
 	return NULL;
 }
 
-void* MemoryRegion::FindAddress(const std::vector<BYTE>* Signature, const std::vector<char>* SignatureMask, size_t StepSize) const
+void* MemoryRegion::FindAddress(const BYTE* Signature, const char* SignatureMask, size_t SignatureSize, void* StartAddress /* = NULL */, size_t StepSize /* = 1 */) const
 {
 	if (Signature == NULL || SignatureMask == NULL)
 	{
 		return NULL;
 	}
 
-	unsigned int counter = 0;
-	void* start = this->GetStartAddress();
+	void* start = (StartAddress == NULL) ? this->GetStartAddress() : StartAddress;
+	void* end = this->GetEndAddress();
 
-	for (BYTE* i = (BYTE*)this->GetStartAddress(); i <= (BYTE*)this->GetEndAddress(); i += StepSize)
+	for(BYTE* testAddr = (BYTE*)start; testAddr < (BYTE*)end; testAddr += StepSize) 
 	{
-		if (*i == (BYTE)Signature->at(counter) || SignatureMask->at(counter) == '?')
+		for(size_t i = 0; i < SignatureSize; i++) 
 		{
-			counter++;
-		}
-		else if (*i != (BYTE)Signature->at(counter))
-		{
-			counter = 0;
-			start = i + StepSize;
-		}
+			if (SignatureMask[i] == '?')
+			{
+				continue;
+			}
 
-		if (counter >= Signature->size() - 1)
-		{
-			return (void*)start;
+			if (Signature[i] != testAddr[i])
+			{
+				break;
+			}
+
+			if (i == SignatureSize - 1)
+			{
+				return (void*)testAddr;
+			}
 		}
 	}
 
 	return NULL;
+}
+
+void* MemoryRegion::FindAddress(const std::vector<BYTE>* Signature, const std::vector<char>* SignatureMask, void* StartAddress /* = NULL */, size_t StepSize /* = 1 */) const
+{
+	return this->FindAddress(&Signature->at(0), &SignatureMask->at(0), Signature->size(), StartAddress, StepSize);
 }
 
 bool MemoryRegion::ContainsAddress(void* Address) const

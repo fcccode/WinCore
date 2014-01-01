@@ -30,6 +30,8 @@ THE SOFTWARE.
 
 #include "ADE32.h"
 
+#include <iostream>
+
 #define FN_MAGIC_NUMBER 0xAB098235
 
 namespace tcpie { namespace wincore {
@@ -64,16 +66,24 @@ Function::Function(const Process* process, void* Address, CallingConvention Call
 	this->patchinfo = NULL;
 }
 
-Function* Function::FindFunction(const std::vector<BYTE>* Signature, const std::vector<char>* SignatureMask, CallingConvention CallConv, int ArgCount, ReturnType RetType)
-{
-	return Function::FindFunction(Signature, SignatureMask, Process::GetCurrentProcess(), CallConv, ArgCount, RetType);
-}
-
-Function* Function::FindFunction(const std::vector<BYTE>* Signature, const std::vector<char>* SignatureMask, const Process* process, CallingConvention CallConv, int ArgCount, ReturnType RetType)
+Function* Function::FindFunction(const BYTE* Signature, const char* SignatureMask, size_t SignatureSize, const Process* process, CallingConvention CallConv, int ArgCount, ReturnType RetType)
 {
 	const Module* module = process->GetMainModule();
 
-	void* address = module->GetMemoryRegion()->FindAddress(Signature, SignatureMask);
+	std::wcout << L"FindFn main module name: \"" << *(module->GetName()) << "\"" << std::endl;
+
+	void* address = module->GetMemoryRegion()->FindAddress(Signature, SignatureMask, SignatureSize);
+
+	/*
+	if (process == Process::GetCurrentProcess())
+	{
+		address = module->GetMemoryRegion()->FindAddress(Signature, SignatureMask, SignatureSize, GetModuleHandle(NULL));
+	}
+	else
+	{
+		address = module->GetMemoryRegion()->FindAddress(Signature, SignatureMask, SignatureSize);
+	}
+	*/
 
 	if (address == NULL)
 	{
@@ -87,7 +97,7 @@ Function* Function::FindFunction(const std::vector<BYTE>* Signature, const std::
 				continue;
 			}
 
-			address = mods->at(i)->GetMemoryRegion()->FindAddress(Signature, SignatureMask);
+			address = mods->at(i)->GetMemoryRegion()->FindAddress(Signature, SignatureMask, SignatureSize);
 
 			if (address != NULL)
 			{
@@ -104,6 +114,21 @@ Function* Function::FindFunction(const std::vector<BYTE>* Signature, const std::
 	}
 
 	return new Function(process, address, CallConv, ArgCount, RetType);
+}
+
+Function* Function::FindFunction(const BYTE* Signature, const char* SignatureMask, size_t SignatureSize, CallingConvention CallConv, int ArgCount, ReturnType RetType)
+{
+	return Function::FindFunction(Signature, SignatureMask, SignatureSize, Process::GetCurrentProcess(), CallConv, ArgCount, RetType);
+}
+
+Function* Function::FindFunction(const std::vector<BYTE>* Signature, const std::vector<char>* SignatureMask, CallingConvention CallConv, int ArgCount, ReturnType RetType)
+{
+	return Function::FindFunction(Signature, SignatureMask, Process::GetCurrentProcess(), CallConv, ArgCount, RetType);
+}
+
+Function* Function::FindFunction(const std::vector<BYTE>* Signature, const std::vector<char>* SignatureMask, const Process* process, CallingConvention CallConv, int ArgCount, ReturnType RetType)
+{
+	return Function::FindFunction(&Signature->at(0), &SignatureMask->at(0), Signature->size(), process, CallConv, ArgCount, RetType);
 }
 
 Function::~Function()

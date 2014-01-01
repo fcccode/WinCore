@@ -160,6 +160,33 @@ public:
 	/// @return		An instance of a Function on success, NULL on failure.
 	static Function* FindFunction(const std::vector<BYTE>* Signature, const std::vector<char>* SignatureMask, const Process* process, CallingConvention CallConv, int ArgCount, ReturnType RetType);
 
+	/// @brief		Finds a function using the specified parameters
+	/// @param		Signature			The function's signature
+	/// @param		SignatureMask		The functions's signature mask. Should have the same length as Signature. If any bytes need to be ignored, denote them with '?'
+	/// @param		SignatureSize		The number of elements in Signature and SignatureMask
+	/// @param		CallConv			The function's calling convention
+	/// @param		ArgCount			The numer of argument the function has. Use -1 for variable number of arguments.
+	/// @param		RetType				The return type of the function
+	///
+	///				This method assumes the function is in the current process. Internally this function uses MemoryRegion::FindAddress
+	///
+	/// @return		An instance of a Function on success, NULL on failure.
+	static Function* FindFunction(const BYTE* Signature, const char* SignatureMask, size_t SignatureSize, CallingConvention CallConv, int ArgCount, ReturnType RetType);
+
+	/// @brief		Finds a function using the specified parameters
+	/// @param		Signature			The function's signature
+	/// @param		SignatureMask		The functions's signature mask. Should have the same length as Signature. If any bytes need to be ignored, denote them with '?'
+	/// @param		SignatureSize		The number of elements in Signature and SignatureMask
+	/// @param		process				The process the function is in
+	/// @param		CallConv			The function's calling convention
+	/// @param		ArgCount			The number of argument the function has. Use -1 for variable number of arguments.
+	/// @param		RetType				The return type of the function
+	///
+	///				Internally this function uses MemoryRegion::FindAddress
+	///
+	/// @return		An instance of a Function on success, NULL on failure.
+	static Function* FindFunction(const BYTE* Signature, const char* SignatureMask, size_t SignatureSize, const Process* process, CallingConvention CallConv, int ArgCount, ReturnType RetType);
+
 	/// @brief		Copy constructor
 	Function(Function& other);
 

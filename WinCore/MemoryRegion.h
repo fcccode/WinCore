@@ -79,7 +79,17 @@ public:
 	/// @return					The found address. If the signature is not found, NULL is returned.
 	///
 	/// Same behaviour as the often-used sigscan() function.
-	void* FindAddress(const std::vector<BYTE>* Signature, const std::vector<char>* SignatureMask, size_t StepSize = 1) const;
+	void* FindAddress(const std::vector<BYTE>* Signature, const std::vector<char>* SignatureMask, void* StartAddress = NULL, size_t StepSize = 1) const;
+
+	/// @brief Searches for the address of a Signature.
+	/// @param Signature		The signature to search for.
+	/// @param SignatureMask	The signature's mask. Should have the same size as Signature. Any bytes labeled with '?' will be ignored.
+	/// @param SignatureSize	The number of elements in Signature and SignatureMask
+	/// @param StepSize			The step size, in bytes, to use when searching. The default is 1.
+	/// @return					The found address. If the signature is not found, NULL is returned.
+	///
+	/// Same behaviour as the often-used sigscan() function.
+	void* FindAddress(const BYTE* Signature, const char* SignatureMask, size_t SignatureSize, void* StartAddress = NULL, size_t StepSize = 1) const;
 
 	/// @brief Checks if the provided address lies within its borders.
 	/// @param Address			The address to check.
